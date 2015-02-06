@@ -3,11 +3,42 @@
   <head>
     <title>CS171 Section 1</title>
     <script src="http://d3js.org/d3.v3.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="/style.css" />
     <link rel="stylesheet" type="text/css" href="style.css" />
   </head>
   <body>
-    <h1>Welcome to CS171</h1>
-    <p>Data visualization</p>
-    <svg></svg>
+    <h1>Welcome to My Homepage</h1>
+    <p id = "subheading">Data visualization</p>
+    <p>I should learn more HTML and CSS</p>
+    <svg>
+    </svg>
+    <script>var svg = d3.select("svg");
+        
+        var circle = svg.append("circle");
+        circle
+        .attr("cx", 200)
+        .attr("cy", 100)
+        .attr("r", 40)
+        .attr("fill", "steelblue");
+        
+        circle
+        .transition()
+        .attr("cx", 400);
+        
+        var circle2 = svg.append("circle")
+        .attr("cx", 300)
+        .attr("cy", 100)
+        .attr("r", 40)
+        .attr("fill", "steelblue");
+
+        var g = svg.append("g");
+        g.node().appendChild(circle.node());
+        g.node().appendChild(circle2.node());
+        
+        g
+        .transition()
+        .attr("transform", "translate(0, 100)");
+    </script>
+    
   </body>
 </html>
