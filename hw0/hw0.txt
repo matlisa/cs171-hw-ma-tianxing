@@ -1,0 +1,30 @@
+CS 171 Homework 0
+Tianxing Ma
+
+Problem 3
+
+The first snippet:
+
+What does this snippet do?
+Creates a horizontal bar graph, where the width represents the data. 
+
+What is .bar? What is selected?
+It is a class. All those (future elements) with the class "bar" is selected. 
+
+Given that data is an array with [150, 230, 180, 90], what values do d and i take while this program executes. Why?
+d: 150, 230, 180, 90
+i: 0, 1, 2, 3
+Because we pass use d and i as the argument names of the function, D3 will pass in the current datum into d and the index into i. 
+
+What does append("rect") do?
+This action creates the DOM elements, rectangles, and appends them. 
+
+The second snippet:
+
+What does this snippet do? How is it different than the previous one?
+The end result of this snippet is the same as the previous one. It is slightly different because it creates three new variables. 
+
+What do the variables bars, bars_enter and rects contain?
+bars: contains nothing
+bars_enter: contains an array of objects (empty placeholder elements) that are bond to the data
+rects: contains an array of "rect" elements that are data-bond and now in the DOM

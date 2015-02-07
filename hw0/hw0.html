@@ -1,0 +1,34 @@
+<!DOCTYPE HTML>
+<html>
+  <head>
+    <title>CS171 Section 1</title>
+    <script src="http://d3js.org/d3.v3.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="/style.css" />
+    <link rel="stylesheet" type="text/css" href="style.css" />
+  </head>
+  <body>
+    <h1>Welcome!</h1>
+    <p id = "subheading">Data visualization</p>
+    <svg>
+    </svg>
+    <script>
+    var svg = d3.select("svg");
+    
+    var data = [150, 230, 180, 90];
+    var bars = svg.selectAll(".bar");
+
+    var bars_enter = bars.data(data).enter();
+
+    var rects = bars_enter.append("rect")
+      .attr({
+        class : "bar",
+        width : function(d) {return d;},
+        height: "40",
+        y : function(d, i) {return i*50 + 10;},
+        x : "0",
+        fill: "red"
+       });
+    </script>
+    
+  </body>
+</html>

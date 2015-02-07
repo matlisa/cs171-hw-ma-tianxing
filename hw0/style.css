@@ -19,3 +19,8 @@ p#subheading {
     color: darkgrey;
     font-style:italic;
 }
+
+.bar{
+
+  color: red;
+}
