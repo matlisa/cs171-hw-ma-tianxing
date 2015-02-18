@@ -34,6 +34,30 @@
   var g = svg.append("g")
               .attr("transform", "translate("+margin.left+","+margin.top+")");
 
+  var data = [10, 45, 105, 69, 80, 55, 200];
+  var barheight = 50;
+
+  // scale is a function
+  var scale = d3.scale.linear()
+    .domain([0, 200])
+    .range([0, height]);
+
+  var colorScale = d3.scale.linear()
+    .domain([0, 200])
+    .range(["steelblue", "red"]);
+
+  var rect = svg.selectAll("rect")
+    .data(data)
+    .enter().append("rect");
+
+  rect
+    .attr("fill", function(d, i){
+        return colorScale(d);
+    })
+    .attr("width", function(d, i){return scale(d);})
+    .attr("height", barheight)
+    .attr("x", 50)
+    .attr("y", function(d, i){return ((barheight+2)*i);});
   /////////////////////////
   ////// YOUR CODE ////////
   /////////////////////////

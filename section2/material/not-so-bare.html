@@ -36,29 +36,69 @@
 
   /////////////////////////
 
-  var data = [10, 45, 105, 69, 80, 55, 180];
+  /*
+  d3.json("data.json", function(data){
 
-  var bar_height = 50;
+    var bar_height = 50;
 
-  var scale = d3.scale.linear()
-    .domain([0, 200])
-    .range([0, height]);
+    var scale = d3.scale.linear()
+      .domain([0, 200])
+      .range([0, height]);
 
-  var color = d3.scale.linear()
-    .range(["green","red"])
-    .domain([0, 200]);
+    var color = d3.scale.linear()
+      .range(["steelblue","red"])
+      .domain([0, 200]);
 
-  var rect = g.selectAll("rect")
-      .data(data)
-    .enter().append("rect")
-    .attr("fill", function(d, i) {
-        return color(d);
-    })
-    .attr("width", 100)
-    .attr("height", bar_height)
-    .attr("x", 50)
-    .attr("y", function(d, i) {
-        return scale(d);
+    var rect = g.selectAll("rect")
+        .data(data)
+      .enter().append("rect")
+      .attr("fill", function(d, i) {
+          return color(d);
+      })
+      .attr("width", function(d, i){return scale(d);})
+      .attr("height", bar_height)
+      .attr("x", 50)
+      .attr("y", function(d, i){return ((bar_height+2)*i);});
+
+    });
+    */
+
+    d3.json("weather.json", function(data){
+
+    var bar_height = 50;
+
+    
+    var max = d3.max(data, function(d){
+      return d.temperature;
+    });
+    console.log(max)
+    
+
+    var scale = d3.scale.linear()
+      .domain([0, max])
+      .range([0, height]);
+
+    var color = d3.scale.linear()
+      .range(["steelblue","red"])
+      .domain([0, max]);
+
+    var rect = g.selectAll("rect")
+        .data(data)
+      .enter().append("rect")
+      .attr("fill", function(d, i) {
+          return color(d.temperature);
+      })
+      .attr("width", function(d, i){
+        console.log(d)
+        return scale(d.temperature);})
+      .attr("height", bar_height)
+      .attr("x", 50)
+      .attr("y", function(d, i){return ((bar_height+2)*i);});
+
+    rect.append("title")
+      .text(function(d,i){
+        return d["location"]["city"];
+      });
     });
 
   </script>
