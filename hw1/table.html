@@ -40,6 +40,10 @@
     }
     </style>
   <div>
+    <strong>Time update:</strong>
+    <label id = "min_time"></label><input type="range" name="years" min="1" max="" step="1" value="0" id="slider-time" oninput=";"><label id = "max_time"></label>
+  </div>
+  <div>
     <strong>Filter by:</strong>
     <label><input type="checkbox" name="Americas" value="1" id="filter" onchange"('changed!')"/>Americas</input></label>
     <label><input type="checkbox" name="Africa" value="2" id="filter" />Africa</label>    
@@ -49,7 +53,7 @@
   </div>
   <div>
     <strong>Aggregate by:</strong>
-    <label><input type="radio" name="Aggregate" value="none" id="none" onclick="">None</label>
+    <label><input type="radio" name="Aggregate" value="none" id="no_aggregate" onclick="">None</label>
     <label><input type="radio" name="Aggregate" value="continent" id="aggregate" onclick="">Continent</label>
   </div>
     <script>
@@ -62,14 +66,12 @@
       var gdpformat = d3.format("0,.1f");
       var lifeformat = d3.format("0.3r");
       var prefix = d3.formatPrefix(1.25e9);
-      var isOrder = true;
+      var is_order = true;
 
-      function isOdd(num) { return num % 2;};
-
-      function sortRows(header, i) {
-        isOrder = !isOrder;
+      function sort_rows(header, i) {
+        is_order = !is_order;
         tbody.selectAll("tr").sort(function(a, b) {
-            if (isOrder) {
+            if (is_order) {
               if (header == "gdp") {
                 return d3.descending(a[header],b[header]);
               }
@@ -105,35 +107,6 @@
         );
       }
 
-      function general_sortRows(header, i) {
-        isOrder = !isOrder;
-        tbody.selectAll("tr").sort(function(a, b) {
-            if (isOrder) {
-              if (header == "gdp") {
-                return d3.descending(a["values"][header],b["values"][header]);
-              }
-              else if (header == "continent") {
-                return d3.descending(a["key"],b["key"]);
-              }
-              else{
-                return d3.descending(a["values"][header],b["values"][header]);
-              }
-            }
-            else {
-              if (header == "gdp") {
-                return d3.ascending(a["values"][header],b["values"][header]);
-              }
-              else if (header == "continent") {
-                return d3.ascending(a["key"],b["key"]);
-              }               
-              else{
-                return d3.ascending(a["values"][header],b["values"][header]);
-              }               
-            }
-          }
-        );
-      }
-
       function buildtable(data, variables, title) {
         var table = d3.select("body").append("table"),
         thead = table.append("thead")
@@ -149,9 +122,9 @@
           .append("th")
           .text(function(d,i) { return title[i]; })
           .on("click", function(header, i) {
-            sortRows(header, i);
+            sort_rows(header, i);
             thead.style("cursor", function(){
-            if (isOrder) {
+            if (is_order) {
               return "s-resize";
             }
             else {
@@ -160,12 +133,10 @@
           })
           });
 
-
         var rows = tbody.selectAll("tr.row")
           .data(data)
           .enter()
           .append("tr").attr("class", "row");
-
 
         var cells = rows.selectAll("td")
           .data(function(row) {
@@ -183,83 +154,166 @@
           })
           .enter()
           .append("td")
-          .text(function(d) { return d; });  
-
-      //filter(data, variables, variables_titles);
-
+          .text(function(d) { return d; }); 
       }
 
-      function update(new_data, variables, title) {
-        // Render the chart with new data
-        d3.select('table').remove();
-        buildtable(new_data, variables, title);
+      function filter_year(data) {
+        var year = d3.select('#slider-time').property("value");
+        var filtered_year = data.filter(function(d) {
+            return d["year"] == year;
+          }) 
+        return filtered_year;
       }
 
-      function filter(data, variables, titles) {
-          var continent = ["", "", "", "", ""];
+      function update(data, variables, titles) {
+          var continent = ["", "", "", "", "", ""];
+          
+          var filtered_year = filter_year(data);
+
+          var empty = true;
+
           d3.selectAll("input").each(function(d,i) {
+            empty = false;
             if(d3.select(this).attr("type") == "checkbox" && d3.select(this).node().checked) {
               continent[i] = d3.select(this).attr("name");
             } 
+            var empty_count = 0;
+            for (var j = 0; j < 6; j++) {
+              if (continent[j] == "") {
+                empty_count++;
+              }
+            }
+            if (empty_count == 6) {
+              empty = true;
+            }
           })
-          var filtered_data = data.filter(function(d) {
+
+          var filtered_data = filtered_year.filter(function(d) {
+            if (!empty) { 
               var need = (d["continent"] == continent[0]);
               for (var i = 1; i <6 ; i++) {
                 need = need || (d["continent"] == continent[i]);
               }
               return need;
+            }
+            else {
+              return true;
+            }
           })
-          if (filtered_data != "") {
-            update(filtered_data, variables, titles); 
+          
+          d3.select('table').remove();
+
+          if (filtered_data != "") {    
+            buildtable(filtered_data, variables, titles);
           }
           else {
-            update(data, variables, titles);
+            buildtable(data, variables, titles);
           }
       }
 
-      d3.json("data/countries_2012.json", function(error, data){
+      function aggregate(data){
+        var year = d3.select('#slider-time').property("value");
+        var filtered_year = filter_year(data);
 
-        var columns = Object.keys(data[0]);
+        aggregated = d3.nest()
+          .key(function(d) { return d.continent; })
+          .rollup(function(leaves) { return {
+            "gdp": d3.sum(leaves, function(d) {return parseFloat(d.gdp);}),
+            "life_expectancy": d3.mean(leaves, function(d) {return d.life_expectancy;}),
+            "population": d3.sum(leaves, function(d) {return d.population;}),
+            "year": year,
+          } })
+          .entries(filtered_year);
 
-        buildtable(data, variables, variables_titles);
-        filter(data, variables, variables_titles);
-        var aggregate_rows = d3.nest()
-            .key(function(d) { return d.continent; })
-            .rollup(function(leaves) { return {
-              "gdp": d3.sum(leaves, function(d) {return parseFloat(d.gdp);}),
-              "life_expectancy": d3.mean(leaves, function(d) {return d.life_expectancy;}),
-              "population": d3.sum(leaves, function(d) {return d.population;}),
-              "year": 2012,
-            } })
-            .entries(data);
+        flat_results = aggregated.map(function(d, i){
+        return {
+          continent:d.key,
+          gdp:d.values.gdp,
+          life_expectancy:d.values.life_expectancy,
+          population:d.values.population,
+          year:d.values.year};
+        })
+        return flat_results;
+      }
 
-        flat_results = aggregate_rows.map(function(d, i){
-          return {
-            continent:d.key,
-            gdp:d.values.gdp,
-            life_expectancy:d.values.life_expectancy,
-            population:d.values.population,
-            year:d.values.year};
-          })
+      d3.json("data/countries_1995_2012.json", function(error, data){
+
+
+        // experiment
+
+        var year = d3.select('#slider-time').property("value");
+        var experiment = data.filter(function(d) {
+            return d.years["year"] == year;
+          }) 
+
+console.log(year);
+
+
+        // experiment (end)
+
+        var flat = [];
+  
+        var n = 0;
+        for (var i = 0; i < data.length; i++) {
+          for (var j = 0; j < data[i].years.length; j++) {
+            flat[n] = {
+              'name': data[i].name,
+              'continent': data[i].continent,
+              'gdp': data[i].years[j].gdp,
+              'life_expectancy': data[i].years[j].life_expectancy,
+              'population': data[i].years[j].population,
+              'year': data[i].years[j].year
+            };
+            n++;
+          }
+        }
+
+        var min = d3.min(flat, function(d){
+            return d.year;})
+        var max = d3.max(flat, function(d){
+            return d.year;})
+
+        d3.select('#slider-time').property("min", min);
+        d3.select('#slider-time').property("max", max);
+
+        d3.select('#min_time')
+          .text(min);
+
+        d3.select('#max_time')
+          .text(max);
+
+        filtered_year = filter_year(flat);
+
+        buildtable(filtered_year, variables, variables_titles);
 
         d3.selectAll("#aggregate").on("change", function() {
-          filter(flat_results, new_variables, new_variables_titles);
+          aggregate_rows = aggregate(flat);
+          update(aggregate_rows, new_variables, new_variables_titles);
         });
 
-        d3.selectAll("#none").on("change", function() {    
-          filter(data, variables, variables_titles);
-          
+        d3.selectAll("#no_aggregate").on("change", function() {  update(flat, variables, variables_titles);
         });
 
         d3.selectAll("#filter").on("change", function(d) {
           if(d3.select("#aggregate").node().checked) {
-            filter(flat_results, new_variables, new_variables_titles);
+            aggregate_rows = aggregate(flat);
+            update(aggregate_rows, new_variables, new_variables_titles);
           } 
           else {
-            filter(data, variables, variables_titles);
+            update(flat, variables, variables_titles);
           }
         });
-        
+
+        d3.selectAll('#slider-time').on("input",function(){
+          if(d3.select("#aggregate").node().checked) {
+            aggregate_rows = aggregate(flat);
+            update(aggregate_rows, new_variables, new_variables_titles);
+          } 
+          else {
+            update(flat, variables, variables_titles);
+          }
+        });
+
     });
     </script> 
   </body>
