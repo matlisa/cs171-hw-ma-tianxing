@@ -8,6 +8,11 @@
       width: 800px;
       margin: 25px auto;
       font-family: Century Gothic,CenturyGothic,AppleGothic,sans-serif; 
+      text-align: center;
+    }
+    p {
+      font-size: x-large;
+      text-align: center;
     }
     tbody tr:nth-child(odd) {
       background: #E3F1F7;
@@ -25,11 +30,8 @@
     th:hover {
       opacity: 1;
     }    
-    table {
-      border: none;
-    }
     td {
-      text-align: right;
+      text-align: left;
       padding: .3em;
     }
     .row{
@@ -39,6 +41,7 @@
       background-color: #FFFFA4;
     }
     </style>
+   <p><strong>World Countries Ranking Table</strong></p> 
   <div>
     <strong>Time update:</strong>
     <label id = "min_time"></label><input type="range" name="years" min="1" max="" step="1" value="0" id="slider-time" oninput=";"><label id = "max_time"></label>
@@ -66,6 +69,7 @@
       var gdpformat = d3.format("0,.1f");
       var lifeformat = d3.format("0.3r");
       var prefix = d3.formatPrefix(1.25e9);
+      var prefix_pop = d3.formatPrefix(1.25e6);
       var is_order = true;
 
       function sort_rows(header, i) {
@@ -113,8 +117,7 @@
                      .attr("class", "thead");
         tbody = table.append("tbody");
 
-        table.append("caption")
-          .html("World Countries Ranking");
+        table.attr("align", "center");
 
         thead.append("tr").selectAll("th")
           .data(variables)
@@ -147,9 +150,10 @@
               else if (column == "life_expectancy"){
                 return lifeformat(row[column]);
               }
-              else {
-                return row[column];
+              else if (column == "population") {
+                return (gdpformat(prefix_pop.scale(row[column]))+prefix_pop.symbol);
               } 
+              else {return row[column];}
             });
           })
           .enter()
@@ -238,18 +242,6 @@
 
       d3.json("data/countries_1995_2012.json", function(error, data){
 
-
-        // experiment
-
-        var year = d3.select('#slider-time').property("value");
-        var experiment = data.filter(function(d) {
-            return d.years["year"] == year;
-          }) 
-
-console.log(year);
-
-
-        // experiment (end)
 
         var flat = [];
   
