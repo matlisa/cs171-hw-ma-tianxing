@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script src="http://d3js.org/d3.v3.min.js"></script>
+<script src="http://labratrevenge.com/d3-tip/javascripts/d3.tip.v0.6.3.js"></script>
+  <style type="text/css">
+    body {
+      width: 800px;
+      margin: 25px auto;
+      font-family: Century Gothic,CenturyGothic,AppleGothic,sans-serif; 
+    } 
+    circle {
+      fill: steelblue;
+      stroke: #fff;
+      stroke-width: 1;
+    }
+    .link {
+      stroke: #d3d3d3;
+      stroke-opacity: 0.5;
+    }
+    .text {
+      font-size: small;
+      fill-opacity: 0.8;
+      text-anchor: middle;
+    }
+    .text:hover {
+      fill-opacity: 1;
+    }
+    .lab {
+      font-size: xx-large;
+      opacity: 0.3;
+
+    }
+    .axis path,
+    .axis line {
+        fill: none;
+        stroke: black;
+        shape-rendering: crispEdges;
+    }
+    .axis text {
+        font-family: sans-serif;
+        font-size: small;
+    }
+    .d3-tip {
+      line-height: 1;
+      /*font-weight: bold;*/
+      padding: 12px;
+      background: #d3d3d3;
+      color: #fff;
+      border-radius: 2px;
+    }
+    /* Creates a small triangle extender for the tooltip */
+    .d3-tip:after {
+      box-sizing: border-box;
+      display: inline;
+      font-size: 10px;
+      width: 100%;
+      line-height: 1;
+      color: #d3d3d3;
+      content: "\25BC";
+      position: absolute;
+      text-align: center;
+    }
+    /* Style northward tooltips differently */
+    .d3-tip.n:after {
+      margin: -1px 0 0 0;
+      top: 100%;
+      left: 0;
+    }
+  </style>
+</head>
+<body>
+  <h1>Connect</h1>
+
+
+  <script type="text/javascript">
+
+  var margin = {top: 40, bottom: 10, left: 20, right: 20};
+  var width = 800 - margin.left - margin.right;
+  var height = 700 - margin.top - margin.bottom;
+
+  var xscale = d3.scale.linear().range([10, width]);
+  var yscale = d3.scale.linear().range([0, height]);
+
+  var group_scale = d3.scale.ordinal().domain(["Africa", "Asia", "Oceania", "Europe", "Americas"])
+
+  var gdpformat = d3.format("0,.1f");
+  var prefix = d3.formatPrefix(1.25e9);
+  var prefix_pop = d3.formatPrefix(1.25e6);
+
+  // Creates sources <svg> element and inner g (for margins)
+  var svg = d3.select("body").append("svg")
+              .attr("width", width+margin.left+margin.right)
+              .attr("height", height+margin.top+margin.bottom)
+            .append("g")
+              .attr("transform", "translate("+margin.left+","+margin.top+")");
+
+  var x_axis = d3.svg.axis()
+                     .scale(xscale)
+                     .orient("bottom")
+
+
+  var force = d3.layout.force()
+      .size([width, height])
+      .charge(-300)
+      .gravity(0.7)
+
+  var node, text, max_value, min_value;
+  var track_alpha;
+  
+  var continent_names;
+
+  var pie = d3.layout.pie();
+
+  r = Math.min(height, width)/1.2;
+
+  var arc = d3.svg.arc()
+            .innerRadius(0);
+
+  var color = d3.scale.category20();
+
+  var tip = d3.tip()
+    .attr('class', 'd3-tip')
+    .offset([-10, 0])
+    .style("opacity", 0)
+
+
+
+  function package_imports(nodes) {
+    var map = {},
+        imports = [];
+
+    // Compute a map from name to node.
+    nodes.forEach(function(d) {
+      map[d.country_id] = d;
+    });
+
+    // For each import, construct a link from the source to target node.
+    nodes.forEach(function(d) {
+      if (d.years[17].top_partners) { d.years[17].top_partners.forEach(function(dd) {
+        if (map[dd.country_id] && map[d.country_id]) {
+        imports.push({source: map[d.country_id], target: map[dd.country_id]}); }
+        })
+      }
+    });
+    return imports;
+  }
+
+  d3.json("data/countries_1995_2012.json", function(data) {
+
+    trial_links = package_imports(data);
+ 
+    var links = data.map(function(d, i){
+      if(d.years[17].top_partners) {
+      return d.years[17].top_partners.map(function(dd, j) {
+        return {
+            source: d.country_id,
+            target: dd.country_id
+            }
+        })
+      }
+    })
+
+    var new_links = [];
+    for (var i = 0; i < links.length; i ++) {
+      for (var j = 0; j < 10; j++) {
+      var add = {"source": links[i][j].source, "target": links[i][j].target};
+      new_links.push(add);
+      }
+    }
+    
+    var new_data = {"nodes":data, "links":trial_links};
+    
+    var link = svg.selectAll(".link")
+        .data(new_data.links);
+
+    link
+      .enter().append("line")
+      .attr("class", "link")
+
+    var node = svg.selectAll(".node")
+      .data(data);
+
+    node
+      .enter().append("circle")
+      .attr("class", "node")
+      .style("fill", function(d) { return color(d.group); })
+      .attr("r", 7.5)
+      .style("fill", function(d) { return color(d.continent); })
+
+    force
+      .links(new_data.links)
+      .nodes(data)
+      .start();
+
+    node.append("title")
+      .text(function(d) { if(d != "") {
+        return d.name;}  });
+
+    text = svg.selectAll(".text")
+      .data(new_data.links)
+
+    countries = svg.selectAll(".lab")
+      .data(data)
+
+    arc.outerRadius(r);
+    pie
+      .sort(function(a, b) { 
+      return d3.ascending(a.name, b.name);})
+      .value(function(d, i) { 
+        return 1;  
+      });
+
+    pie(new_data.nodes).map(function(d, i) {
+      
+      d.innerRadius = 0;
+      d.outerRadius = r;
+      d.data.centroid = arc.centroid(d);
+      d.data.x = arc.centroid(d)[0]+width/2;
+      d.data.y = arc.centroid(d)[1]+height/2;
+      console.log(d.startAngle);
+      if (d.startAngle > 3.14){
+        d.data.rotate = (180 / Math.PI * (d.startAngle + d.endAngle) / 2 + 90)
+      }
+      else {
+        d.data.rotate = (180 / Math.PI * (d.startAngle + d.endAngle) / 2 - 90)
+      }
+      return d.data;
+    })
+    console.log(new_data.nodes);
+
+    var index;
+
+    node
+      .attr("cx", function(d) { return d.x; })
+      .attr("cy", function(d) { return d.y; })
+      .on("mouseover", function(d) {
+        index = d3.select(this.__data__.index);
+        view(index);
+      })
+
+    text
+      .enter().append("text")
+      .attr("class", "text")
+      .attr("transform", function(d) { 
+        return "translate(" + d.source.x + "," + d.source.y + ") " +
+                      "rotate(" + d.source.rotate + ")"; }) 
+      .text(function(d) { return d.source.name; })
+      .style("visibility", "hidden")
+    
+    countries
+      .enter().append("text")
+      .attr("class", "lab")
+      .attr("text-anchor", "middle")
+      .attr("x", width/2)
+      .attr("y", height/2)
+      .text(function(d) { return d.name; })
+      .style("visibility", "hidden")
+
+    link.attr("x1", function(d, i) { return (d.source.x); })
+        .attr("y1", function(d) { return d.source.y; })
+        .attr("x2", function(d) { return d.target.x; })
+        .attr("y2", function(d) { return d.target.y; })
+
+    function view(index) {
+      node.style("opacity", function(d) {
+        if (d.index == index) {
+          return 1;
+        }
+        else {
+          return 0.3;
+        }
+      })
+      link.style("visibility", function(d) {
+        if (d.target.index == index) {
+          return "visible";
+        }
+        else {
+          return "hidden";
+        }
+      })
+      text.style("visibility", function(d) {
+        if (d.target.index == index) {
+          return "visible";
+        }
+        else {
+          return "hidden";
+        }
+      })
+      countries.style("visibility", function(d) {
+        if (d.index == index) {
+          return "visible";
+        }
+        else {
+          return "hidden";
+        }
+      })
+    }
+  });
+  </script>
+</body>
+</html>

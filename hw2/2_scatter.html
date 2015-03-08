@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script src="http://d3js.org/d3.v3.min.js"></script>
+<script src="http://labratrevenge.com/d3-tip/javascripts/d3.tip.v0.6.3.js"></script>
+  <style type="text/css">
+    body {
+      width: 800px;
+      margin: 25px auto;
+      font-family: Century Gothic,CenturyGothic,AppleGothic,sans-serif; 
+    } 
+    circle {
+      fill: steelblue;
+      stroke: #fff;
+      stroke-width: 1;
+    }
+    .link {
+      stroke: #999;
+      stroke-opacity: .6;
+    }
+    text {
+      font-size: small;
+      fill-opacity: 0.8;
+      text-align: right;
+    }
+    text:hover {
+      fill-opacity: 1;
+    }
+    .axis path,
+    .axis line {
+        fill: none;
+        stroke: black;
+        shape-rendering: crispEdges;
+    }
+    .axis text {
+        font-family: sans-serif;
+        font-size: small;
+    }
+    .d3-tip {
+      line-height: 1;
+      /*font-weight: bold;*/
+      padding: 12px;
+      background: #d3d3d3;
+      color: #fff;
+      border-radius: 2px;
+    }
+
+    /* Creates a small triangle extender for the tooltip */
+    .d3-tip:after {
+      box-sizing: border-box;
+      display: inline;
+      font-size: 10px;
+      width: 100%;
+      line-height: 1;
+      color: #d3d3d3;
+      content: "\25BC";
+      position: absolute;
+      text-align: center;
+    }
+
+    /* Style northward tooltips differently */
+    .d3-tip.n:after {
+      margin: -1px 0 0 0;
+      top: 100%;
+      left: 0;
+    }
+  </style>
+</head>
+<body>
+  <h1>Scatter</h1>
+  <div> 
+  <div>
+    <strong>Plot by: </strong>
+    <label><input type="radio" name="map" value="location">Location</label>
+    <label><input type="radio" name="map" value="values">GDP vs. Pop</label>
+  </div>
+  <div>
+    <strong>Force Layout: </strong>
+    <label><input type="radio" name="map" value="on">On</label>
+  </div>
+  <div>
+    <strong>Circle Layout by: </strong>
+    <label><input type="radio" name="map" value="gdp">GDP</label>
+    <label><input type="radio" name="map" value="population">Population</label>
+  </div>
+  <div>
+    <strong>Split by: </strong>
+    <label><input type="radio" name="split" value="no_split">None</label>
+    <label><input type="radio" name="split" value="continent">Continent</label>
+    <label><input type="radio" name="split" value="continent_circle">Continent (Circle Layout)</label>
+  </div>
+  </div> 
+
+  <script type="text/javascript">
+
+  var margin = {top: 40, bottom: 10, left: 20, right: 100};
+  var width = 1200 - margin.left - margin.right;
+  var height = 800 - margin.top - margin.bottom;
+
+  var xscale = d3.scale.linear().range([10, width]);
+  var yscale = d3.scale.linear().range([0, height]);
+
+  var group_scale = d3.scale.ordinal().domain(["Africa", "Asia", "Oceania", "Europe", "Americas"])
+
+  var gdpformat = d3.format("0,.1f");
+  var prefix = d3.formatPrefix(1.25e9);
+  var prefix_pop = d3.formatPrefix(1.25e6);
+
+  // Creates sources <svg> element and inner g (for margins)
+  var svg = d3.select("body").append("svg")
+              .attr("width", width+margin.left+margin.right)
+              .attr("height", height+margin.top+margin.bottom)
+            .append("g")
+              .attr("transform", "translate("+margin.left+","+margin.top+")");
+
+  var x_axis = d3.svg.axis()
+                     .scale(xscale)
+                     .orient("bottom")
+
+
+  var force = d3.layout.force()
+      .size([width, height])
+      .charge(-300)
+      .gravity(0.7)
+
+  var node, text, max_value, min_value;
+  var track_alpha;
+  
+  var continent_names;
+
+  var pie = d3.layout.pie();
+
+  r = Math.min(height, width)/2;
+
+  var arc = d3.svg.arc()
+            .innerRadius(0);
+
+  var color = d3.scale.category20();
+
+  var tip = d3.tip()
+    .attr('class', 'd3-tip')
+    .offset([-10, 0])
+    .style("opacity", 0)
+
+  function scatter(data, x_value, y_value) {
+
+    force.stop();
+
+    max_xvalue = d3.max(data, function(d) { return d[x_value]; } );
+    min_xvalue = d3.min(data, function(d) { return d[x_value]; } );
+    max_yvalue = d3.max(data, function(d) { return d[y_value]; } );
+    min_yvalue = d3.min(data, function(d) { return d[y_value]; } );
+    xscale.domain([min_xvalue -10, max_xvalue + 20]);
+    yscale.domain([max_yvalue + 10, min_yvalue - 10]);
+    
+    text.transition().duration(1000).delay(100)
+      .style("opacity", 1)
+      .attr("x", function(d) { return xscale(d[x_value]); })
+      .attr("y", function(d) { return yscale(d[y_value]); })
+      .text(function(d) { return d.name; })
+    node.transition().duration(1000).delay(100)
+      .attr("cx", function(d) { return xscale(d[x_value]); })
+      .attr("cy", function(d) { return yscale(d[y_value]); })
+  }
+
+  function circular_layout(data, val) {
+    force.stop();
+    svg.call(tip);
+    arc.outerRadius(r);
+    pie
+      .sort(function(a, b) { 
+      return d3.ascending(a[val], b[val]);}) 
+      .value(function(d, i) { 
+        return 1;  
+      });
+
+    data = pie(data).map(function(d, i) {
+      d.innerRadius = 0;
+      d.outerRadius = r;
+      d.data.x = arc.centroid(d)[0]+width/2;
+      d.data.y = arc.centroid(d)[1]+height/2;
+      return d.data;
+    })
+
+    node.transition().duration(500)
+      .attr("cx", function(d) { return d.x; })
+      .attr("cy", function(d) { return d.y; })
+
+    if (val == "gdp") {
+      tip
+        .html(function(d) {
+      return "<strong>" + d.name + "</strong> <span style='color:#8F8F8F'>" + (gdpformat(prefix.scale(d[val]))+prefix.symbol) + "</span>";
+      })
+    }
+    else {
+      tip
+        .html(function(d) {
+          return "<strong>" + d.name + "</strong> <span style='color:#8F8F8F'>" + (gdpformat(prefix_pop.scale(d[val]))+prefix_pop.symbol) + "</span>";
+      })
+    }
+
+    node
+      .on("mouseover", tip.show)        
+      .on("mouseout", tip.hide)
+
+    text.transition().duration(500)
+      .style("opacity", 0)
+  }
+
+  function find_centers() {
+    var arc2 = d3.svg.arc()
+          .outerRadius(r)
+          .innerRadius(0);
+    group_scale.rangeBands([10, width]);
+
+    continent_names = [{continent: "Africa"}, {continent: "Asia"}, {continent:"Oceania"}, {continent: "Europe"}, {continent: "Americas"}];
+    continent_names = continent_names.map(function(d, i){
+        return {
+          continent:d.continent,
+          x:0,
+          y:0 };
+        })
+
+    var pie_continents = d3.layout.pie()
+    
+    pie_continents
+      .sort(function(a, b) { 
+        return d3.ascending(a, b);})
+      .value(function(d, i) { 
+        return 1;  
+      });
+
+    continent_names = pie_continents(continent_names).map(function(d, i) {
+      d.innerRadius = 0;
+      d.outerRadius = r;
+      d.data.x = arc2.centroid(d)[0]+width/2;
+      d.data.y = arc2.centroid(d)[1]+height/2;
+      return d.data;
+    })
+  }
+
+  function circular_layout_split(data, val) {
+    force.stop();
+    find_centers();
+    arc.outerRadius(r/2);
+           
+    var filtered_data = data.filter(function(d) {
+        return d["continent"] == "Africa";
+        });
+
+    pie
+      .sort(function(a, b) { 
+      return d3.ascending(a[val], b[val]);}) 
+      .value(function(d, i) { 
+        return 1; 
+      });
+
+    data = pie(data).map(function(d, i) {
+      d.innerRadius = 0;
+      d.outerRadius = r/2;
+
+      if (d.data.continent == "Africa") {
+        d.data.x = arc.centroid(d)[0]+(continent_names[0].x);
+        d.data.y = arc.centroid(d)[1]+(continent_names[0].y);
+      }
+      if (d.data.continent == "Asia") {
+        d.data.x = arc.centroid(d)[0]+(continent_names[1].x);
+        d.data.y = arc.centroid(d)[1]+(continent_names[1].y);
+      }
+      if (d.data.continent == "Oceania") {
+        d.data.x = arc.centroid(d)[0]+(continent_names[2].x);
+        d.data.y = arc.centroid(d)[1]+(continent_names[2].y);
+      }
+      if (d.data.continent == "Europe") {
+        d.data.x = arc.centroid(d)[0]+(continent_names[3].x);
+        d.data.y = arc.centroid(d)[1]+(continent_names[3].y);
+      }
+      if (d.data.continent == "Americas") {
+        d.data.x = arc.centroid(d)[0]+(continent_names[4].x);
+        d.data.y = arc.centroid(d)[1]+(continent_names[4].y);
+      }
+      return d.data;
+    })
+
+    node.transition().duration(500)
+      .attr("cx", function(d) { return d.x; })
+      .attr("cy", function(d) { return d.y; })
+  }
+
+  function force_layout_split(data) {
+
+    if (track_alpha < 0.05) {
+      force.start();
+    }
+
+    force.on("tick", function(e) {
+      track_alpha = e.alpha;
+      var k = 6 * e.alpha;
+      group_scale.rangeBands([10, width]);
+      data.forEach(function(o, i) {
+      o.x += (group_scale(o.continent) - o.x)*0.1*k;
+      o.y += (r - o.y)*0.1*k;
+    });
+
+    node
+      .attr("cx", function(d) { return d.x; })
+      .attr("cy", function(d) { return d.y; })
+    })
+
+  }
+
+  function force_layout_all() {
+    if (track_alpha < 0.05) { force.start();}
+    force.on("tick", tick_all)
+  }
+
+  function tick_all(e) {
+    track_alpha = e.alpha;
+    node
+      .attr("cx", function(d, i) {return d.x;})
+      .attr("cy", function(d, i) {return d.y;})
+  }
+
+  function force_layout_split_circle(data) {
+    if (track_alpha < 0.05) {
+      force.start();
+    }
+
+    force.on("tick", function(e) {
+      track_alpha = e.alpha;
+      var k = 6 * e.alpha;
+      group_scale.rangeBands([10, width]);
+
+      data.forEach(function(o, i) {
+        var j;
+        for(var j = 0; j < continent_names.length; j++) {
+          if(continent_names[j].continent == o.continent) {
+            break;
+          }
+        }
+        o.x += (continent_names[j].x - o.x)*0.1*k;
+        o.y += (continent_names[j].y - o.y)*0.1*k;
+      });
+
+      node
+        .attr("cx", function(d) { return d.x; })
+        .attr("cy", function(d) { return d.y; })
+      })
+  }
+
+  d3.json("data/countries_2012.json", function(data) {
+
+    data = data.sort(function(a, b) { return d3.ascending(a.name, b.name)})
+
+    node = svg.selectAll(".node")
+      .data(data)
+
+    node
+      .enter().append("circle")
+      .attr("class", "node")
+      .attr("r", 3.5)
+      .style("fill", function(d) { return color(d.continent); })
+    
+    text = svg.selectAll(".text")
+      .data(data)
+
+    text
+      .enter().append("text")
+      .attr("x", function(d) {
+          return Math.random() * width;
+      })
+      .attr("y", function(d) {
+          return Math.random() * height;
+      })
+
+    node
+      .exit()
+      .remove();
+
+    force
+        .nodes(data)
+        .start()
+
+    force_layout_all();
+    
+    d3.select("input[value=\"location\"]").on("change", function() {
+      scatter(data,"longitude", "latitude");
+    })
+    d3.select("input[value=\"values\"]").on("change", function() {
+      scatter(data, "population", "gdp");
+    })
+    d3.select("input[value=\"gdp\"]").on("change", function() {
+      text.transition().duration(500)
+        .style("opacity", 0)
+      if (d3.select("input[value=\"continent\"]").node().checked) {
+        circular_layout_split(data, "gdp");
+      }
+      else {
+        circular_layout(data, "gdp");
+      }
+    })
+    d3.select("input[value=\"population\"]").on("change", function() {
+      text.transition().duration(500)
+        .style("opacity", 0)
+      if (d3.select("input[value=\"continent\"]").node().checked) {
+        circular_layout_split(data, "population");
+      }
+      else {
+        circular_layout(data, "population");
+      }
+    })
+    d3.select("input[value=\"continent\"]").on("change", function() {
+      text.transition().duration(500)
+        .style("opacity", 0)
+      if (d3.select("input[value=\"gdp\"]").node().checked) {
+        circular_layout_split(data, "gdp");
+      }
+      else if (d3.select("input[value=\"population\"]").node().checked){
+        circular_layout_split(data, "population");
+      }
+      else if (d3.select("input[value=\"on\"]").node().checked) {
+        force_layout_split(data);
+      }
+    })
+    d3.select("input[value=\"no_split\"]").on("change", function() {
+      text.transition().duration(500)
+        .style("opacity", 0)
+      if (d3.select("input[value=\"gdp\"]").node().checked) {
+        circular_layout(data, "gdp");
+      }
+      else if (d3.select("input[value=\"population\"]").node().checked){
+        circular_layout(data, "population");
+      }
+      else if (d3.select("input[value=\"on\"]").node().checked) {
+        force_layout_all(data);
+      }
+    })
+    d3.select("input[value=\"continent_circle\"]").on("change", function(){
+      text.transition().duration(500)
+        .style("opacity", 0)
+      if (!d3.select("input[value=\"gdp\"]").node().checked && 
+        !d3.select("input[value=\"population\"]").node().checked) {
+        find_centers();
+        force_layout_split_circle(data);
+      }
+    })
+
+    d3.select("input[value=\"on\"]").on("change", function() {
+      text.transition().duration(500)
+        .style("opacity", 0)
+      
+      if (d3.select("input[value=\"continent\"]").node().checked) {
+        force_layout_split(data);
+      }
+      else if (d3.select("input[value=\"continent_circle\"]").node().checked) {
+        force_layout_split_circle(data);
+      }
+      else if (d3.select("input[value=\"no_split\"]").node().checked) {
+        force_layout_all(data);
+      }
+      else {
+        force_layout_all(data);
+      }
+    })
+  });
+  </script>
+</body>
+</html>
