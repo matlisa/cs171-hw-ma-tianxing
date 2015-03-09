@@ -1,6 +1,6 @@
 # CS 171
 
-## Homework 2: Design
+## Homework 2
 ### Answers
 
 #### Question 0.1
@@ -35,22 +35,11 @@ Quantitative data is best displayed with scatter plots, for example, any relatio
 
 D3 layouts transforms raw data to new data that allows us to more easily implement visual ideas. For instance, once defined the pie layout created a new function "pie" that gives the ability to manipulate the data and calculate new values, such as angles. A disadvantage may be that we would have to work within this framework and perhaps may be limited by the fixed number of functions.
 
-#### Question 2.1
+#### Question 3.1
 
 <ul>
-<li></li>
-<li></li>
+<li>Have the names of the linked countries appear by the side of the circle in a list, instead of on top of the node. (The name of the country should still appear over the node on mouseover.) Relative information about these countries or the connection between these countries and the selected country can also be shown on the side.</li>
+<li>Allow the user to select the countries he/she wants to explore. When the user clicks on a node, any link connected to that node will disappear and the node will move out of the circle and to the side (with accompanied text now visible). The nodes can dynamically resize, but keeping the radius of the big circle the same. The user can also add the countries on the side back into the big circle. There should also be a reset button.</li>
 <li>One way to make sure all names of countries can be read is to rotate them (as I have done in my implementation (connect.html). I also placed the name of the selected country in the center of the big circle so that readers can tell immediately. </li>
 </ul>
-
-
-
-
-
-
-
-
-
-
-
 
