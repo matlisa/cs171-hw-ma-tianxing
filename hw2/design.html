@@ -5,9 +5,11 @@
 <script src="http://labratrevenge.com/d3-tip/javascripts/d3.tip.v0.6.3.js"></script>
   <style type="text/css">
     body {
-      width: 800px;
-      margin: 25px auto;
+      width: 960px;
+      text-align: center;
+      margin: 15px auto;
       font-family: Century Gothic,CenturyGothic,AppleGothic,sans-serif; 
+      background-color: #E5F9FF;
     } 
     circle {
       fill: steelblue;
@@ -89,9 +91,9 @@
 
   <script type="text/javascript">
 
-  var margin = {top: 40, bottom: 10, left: 20, right: 20};
+  var margin = {top: 0, bottom: 10, left: 20, right: 20};
   var width = 1000 - margin.left - margin.right;
-  var height = 800 - margin.top - margin.bottom;
+  var height = 550 - margin.top - margin.bottom;
 
   var xscale = d3.scale.linear().range([10, width]);
   var yscale = d3.scale.linear().range([0, height]);
@@ -148,15 +150,13 @@
         .data(empty);
 
     link
-      .enter().append("line")
-
-    link
       .exit()
       .remove();
 
     force.stop();
 
     svg.call(tip);
+    
     arc.outerRadius(r);
     pie
       .sort(function(a, b) { 
@@ -164,7 +164,7 @@
         return d3.ascending(a[val], b[val]);
       }
       else {
-      return d3.ascending(a.years[year][val], b.years[year][val]);}}) // Sorting by categories
+        return d3.ascending(a.years[year][val], b.years[year][val]);}}) // Sorting by categories
       .value(function(d, i) { 
         return 1;  // We want an equal pie share/slice for each point
       });
@@ -184,16 +184,16 @@
       .attr("cx", function(d) { return d.x; })
       .attr("cy", function(d) { return d.y; })
 
-    if (val == "gdp") {
+    if (val == "GDP (current US$)") {
       tip
         .html(function(d) {
-      return "<strong>" + d.name + "</strong> <span style='color:#8F8F8F'>" + (gdpformat(prefix.scale(d.years[year][val]))+prefix.symbol) + "</span>";
+          return "<strong>" + d.name + "</strong> <span style='color:#8F8F8F'>" + (gdpformat(prefix.scale(d.years[year]["GDP (current US$)"]))+prefix.symbol) + "</span>";
       })
     }
-    else if (val == "population") {
+    else if (val == "Population, total") {
       tip
         .html(function(d) {
-          return "<strong>" + d.name + "</strong> <span style='color:#8F8F8F'>" + (gdpformat(prefix_pop.scale(d.years[year][val]))+prefix_pop.symbol) + "</span>";
+          return "<strong>" + d.name + "</strong> <span style='color:#8F8F8F'>" + (gdpformat(prefix_pop.scale(d.years[year]["Population, total"]))+prefix_pop.symbol) + "</span>";
       })
     }
     else if (val == "name") {
@@ -333,6 +333,17 @@
       })
     svg.call(tip);
 
+    link = svg.selectAll(".link")
+        .data(data.links);
+
+    link
+      .enter().append("line")
+      .attr("class", "link")
+
+    link
+      .exit()
+      .remove();
+
     node = svg.selectAll(".node")
       .data(data.nodes);
 
@@ -355,20 +366,30 @@
             }
             else { return 0;}
           }
-          else {          
-            tip 
-              .html(function(d) {
-              return "<strong>" + d.name + "</strong> <span style='color:#8F8F8F'>" + (gdpformat(prefix_pop.scale(d.years[year].top_partners[index].total_export))+prefix_pop.symbol) + "</span>";})
-
+          else {  
             var min = d3.min(data.nodes, function(dd){
               return dd.years[year].top_partners[index].total_export;})
             var max = d3.max(data.nodes, function(dd){
               return dd.years[year].top_partners[index].total_export;})
             exscale.domain([min, max]);
             return exscale(d.years[year].top_partners[index].total_export);
-
           }
         }
+      })
+      .style("stroke", function(d) {
+        if (d.name == country_selected) {
+          return "red";} 
+      })
+      .style("stroke-width", function(d) {
+        if (d.name == country_selected) {
+          return 1.5;} 
+      })
+
+    tip 
+      .html(function(d) {
+        if (d.name != data.links[0].target.name) {
+          return "<strong>" + d.name + "</strong> <span style='color:#8F8F8F'>" + (gdpformat(prefix_pop.scale(d.years[year].top_partners[index].total_export))+prefix_pop.symbol) + "</span>";}
+        else {return "<strong>" + d.name + "</strong>";}
       })
 
     node
@@ -391,17 +412,6 @@
 
       var length = find_length(data.links, data.links[0].target.name, data.links[0].target.country_id, year);
     }
-        
-    link = svg.selectAll(".link")
-        .data(data.links);
-
-    link
-      .enter().append("line")
-      .attr("class", "link")
-
-    link
-      .exit()
-      .remove();
 
     force
       .nodes(data.nodes)
@@ -422,7 +432,7 @@
   }
 
   function reset(data, all_data, trial_links) {
-      country_selected = "";
+      
 
       var empty = [];
       link = svg.selectAll(".link")
@@ -443,7 +453,7 @@
 
       node
         .attr("class", "node")
-        .attr("r", 7.5)
+        .attr("r", 5.5)
         .style("fill", function(d) { return color(d.continent); })
         .call(force.drag)
         .on("click", function(d) {
@@ -456,23 +466,52 @@
             force_change(new_data, year);
           }
           
-        });
+        })
+        .style("stroke", function(d) {
+          if (d.name == country_selected) {
+            return "white";} 
+        })
+        .style("stroke-width", function(d) {
+          if (d.name == country_selected) {
+            return 1;} 
+        })
+        .on("mouseover", tip.show)        
+        .on("mouseout", tip.hide)
       
+      svg.call(tip);
+
+      tip
+        .html(function(d) {
+          return "<strong>" + d.name + "</strong>";
+      })
+
       node
         .exit()
         .remove();
+
+      country_selected = "";
 
       force
         .nodes(all_data.nodes)
 
       force_layout_all();
-
-      node.append("title")
-        .text(function(d) { if(d != "") {
-          return d.name;}  });
   }
 
   d3.json("data/countries_1995_2012.json", function(data) {
+
+    var background = svg.selectAll(".background")
+      .data([1.6, 2.5])
+    
+    background
+      .enter().append("circle")
+      .attr("class", "background")
+      .attr("r", function(d, i) { return r/d; })
+      .attr("cx", width/2)
+      .attr("cy", height/2)
+      .style("fill", function(d) {
+        if (d == 2.2) { return "#fff";}
+        else {return "#fff"} })
+      .style("opacity", 0.7)
 
     var start_year = d3.select('#slider-time').property("value");
     trial_links = package_imports(data, start_year);
@@ -490,19 +529,6 @@
       .exit()
       .remove();
 
-    var background = svg.selectAll(".background")
-      .data([2.2, 5])
-    
-    background
-      .enter().append("circle")
-      .attr("class", "background")
-      .attr("r", function(d, i) { return r/d; })
-      .attr("cx", width/2)
-      .attr("cy", height/2)
-      .style("fill", function(d) {
-        if (d == 2.2) { return "#f4f4f4";}
-        else {return "#d3d3d3"} })
-      .style("opacity", 0.5)
 
     node = svg.selectAll(".node")
       .data(data);
@@ -510,7 +536,7 @@
     node
       .enter().append("circle")
       .attr("class", "node")
-      .attr("r", 7.5)
+      .attr("r", 5.5)
       .style("fill", function(d) { return color(d.continent); })
       .call(force.drag)
       .on("click", function(d) {
@@ -572,8 +598,8 @@
     })
 
     d3.selectAll('#slider-time').on("input",function(){
+      var year = d3.select('#slider-time').property("value");
       if (d3.select("input[value=\"on\"]").node().checked) {
-        var year = d3.select('#slider-time').property("value");
           if (country_selected) {
             trial_links = package_imports(data, year);
             var new_links = filter_links(trial_links, country_selected);
@@ -582,22 +608,20 @@
           }
       }
       else if (d3.select("input[value=\"gdp\"]").node().checked) {
-        var year = d3.select('#slider-time').property("value");
-        circular_layout(data, "gdp", year);
+        circular_layout(data, "GDP (current US$)", year);
       }
       else if (d3.select("input[value=\"population\"]").node().checked) {
-        var year = d3.select('#slider-time').property("value");
-        circular_layout(data, "population", year);
+        circular_layout(data, "Population, total", year);
       }
     });
 
     d3.select("input[value=\"gdp\"]").on("change", function() {
       var year = d3.select('#slider-time').property("value");
-      circular_layout(data, "gdp", year);
+      circular_layout(data, "GDP (current US$)", year);
     })
     d3.select("input[value=\"population\"]").on("change", function() {
       var year = d3.select('#slider-time').property("value");
-      circular_layout(data, "population", year);
+      circular_layout(data, "Population, total", year);
     })
     d3.select("input[value=\"alpha\"]").on("change", function() {
       var year = d3.select('#slider-time').property("value");
