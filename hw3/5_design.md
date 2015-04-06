@@ -45,4 +45,16 @@ I also wanted to observe all 16 priorities in one visualization window. Although
 
 -
 **Answer:**
+
+Interesting Pattern 1: The proportion of votes for "action taken on climate change" increases during the December and decreases during July, which is when most people in the Northern hemisphere would experience the heat of "global warming." Perhaps more people from the Southern hemisphere cares about climate change, or if not, perhaps warmer than usual winter weather increases people's concern about this topic. (See below screenshots.)
+
 ![Trial](https://github.com/matlisa/cs171-hw-ma-tianxing/blob/master/hw3/img/Start.png)
+![Trial](https://github.com/matlisa/cs171-hw-ma-tianxing/blob/master/hw3/img/Summer.png)
+![Trial](https://github.com/matlisa/cs171-hw-ma-tianxing/blob/master/hw3/img/End.png)
+
+Interesting Pattern 2: The proportion of votes for "a good education" increases during July and decreases during April and December. If most voters are from the Northern hemisphere, perhaps of these, students who value education are more stressed during the final exam months (April and December) and do not have time to vote. In contrast, during the summer (July), they do have the time. (See below screenshots.)
+
+![Trial](https://github.com/matlisa/cs171-hw-ma-tianxing/blob/master/hw3/img/Spring.png)
+![Trial](https://github.com/matlisa/cs171-hw-ma-tianxing/blob/master/hw3/img/Summer.png)
+![Trial](https://github.com/matlisa/cs171-hw-ma-tianxing/blob/master/hw3/img/End.png)
+
