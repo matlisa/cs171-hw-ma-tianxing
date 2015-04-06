@@ -20,12 +20,13 @@ body{
 }
 
 .brush{
-    fill: darkgrey;
+    fill: #7eabf7;
     fill-opacity: .5;
     pointer-events: none;
 }
 .area {
-  fill: steelblue;
+  fill: #FF9933;
+  fill-opacity: 0.8;
   clip-path: url(#clip);
 }
 .axis path,
@@ -42,4 +43,42 @@ body{
   fill: none;
   stroke: lightsteelblue;
   stroke-width: 0.5px;
+}
+.d3-tip {
+  line-height: 1;
+  /*font-weight: bold;*/
+  padding: 12px;
+  background: #000;
+  color: #fff;
+  border-radius: 2px;
+}
+
+/* Creates a small triangle extender for the tooltip */
+.d3-tip:after {
+  box-sizing: border-box;
+  display: inline;
+  font-size: 10px;
+  width: 100%;
+  line-height: 1;
+  color: #000;
+  content: "\25BC";
+  position: absolute;
+  text-align: center;
+}
+
+/* Style northward tooltips differently */
+.d3-tip.n:after {
+  margin: -1px 0 0 0;
+  top: 100%;
+  left: 0;
+}
+
+.title {
+  text-anchor: middle;
+  font-size: 15px;
+  font-weight: bold;
+        
+}
+#brushInfo  {
+  color: #7eabf7;
 }

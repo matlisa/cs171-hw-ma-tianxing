@@ -27,7 +27,7 @@ PrioVis = function(_parentElement, _data, _metaData){
     // TODO: define all constants here
     this.margin = {top: 20, right: 20, bottom: 30, left: 0},
     this.width = getInnerWidth(this.parentElement) - this.margin.left - this.margin.right,
-    this.height = 150 - this.margin.top - this.margin.bottom;
+    this.height = 500 - this.margin.top - this.margin.bottom;
 
     this.initVis();
 }
@@ -45,26 +45,43 @@ PrioVis.prototype.initVis = function(){
         .attr("height", this.height + this.margin.top + this.margin.bottom)
       .append("g")
         .attr("transform", "translate(" + this.margin.left + "," + this.margin.top + ")");
+    
+    this.svg.append("text")
+        .attr("class", "title")
+        .attr("x", (this.width/2)+50)             
+        .attr("y", 0 - (this.margin.top/3))
+        .style("color", "red")
+        .text("Priority Distribution");
 
     // creates axis and scales
     this.x = d3.scale.linear()
       .range([0, this.width-100]);
 
     this.y = d3.scale.linear()
-      .range([this.height, 0]);
+      .range([this.height/2, 0])
+
 
     this.xAxis = d3.svg.axis()
       .scale(this.x)
+      .ticks(15)
+      .tickFormat(function(d) {
+      	if (d > 1) {
+      	return that.metaData["priorities"][d-2]["item-title"]};})
       .orient("bottom");
 
     this.yAxis = d3.svg.axis()
       .scale(this.y)
       .orient("left");
 
+    this.tip = d3.tip()
+	    .attr('class', 'd3-tip')
+	    .offset([-10, 0])
+	    .style("opacity", 0)
+
     // Add axes visual elements
     this.svg.append("g")
         .attr("class", "x axis")
-        .attr("transform", "translate(100," + this.height + ")")
+        .attr("transform", "translate(100," + this.height/2 + ")")
 
     this.svg.append("g")
         .attr("class", "y axis")
@@ -74,7 +91,7 @@ PrioVis.prototype.initVis = function(){
     this.wrangleData(null);
 
     // call the update method
-    this.updateVis();
+    this.updateVis("default");
 }
 
 
@@ -99,7 +116,7 @@ PrioVis.prototype.wrangleData= function(_filterFunction, start, end){
 /**
  * the drawing function - should use the D3 selection, enter, exit
  */
-PrioVis.prototype.updateVis = function(){
+PrioVis.prototype.updateVis = function(view){
     // Dear JS hipster,
     // you might be able to pass some options as parameter _option
     // But it's not needed to solve the task.
@@ -110,69 +127,159 @@ PrioVis.prototype.updateVis = function(){
     // TODO: ...update graphs
 
     var that = this;
+    var partial_tot = this.displayData.total;
+    var total = this.displayData.alltot;
+    var partial_data = this.displayData.prio;
+    var all_data = this.displayData.allp;
+    var partial_days = this.displayData.days;
+    var all_days = this.displayData.alldays;
+   
     // TODO: implement update graphs (D3: update, enter, exit)
-    this.x.domain([1, 17])
     
-    this.y.domain(d3.extent(this.displayData, function(d,i) { return d; }));
-	
+    this.x.domain([1, 17])
+
+	if (view == "prop") {
+		this.y.domain([0.01, 0.13]);
+	}
+	else if (view == "counts") {
+		this.y.domain([0, d3.max(partial_data, function(d, i) { 
+			if ((d/partial_days) >= (all_data[i]/all_days)) {
+				return d/partial_days; }
+			else return all_data[i]/all_days;})])
+	}
+	else {
+		this.y.domain([d3.min(this.displayData.prio, function(d) { return d; })-20000,
+		d3.max(this.displayData.allp, function(d) { return d; })]);
+	}
+
     // updates axis
     this.svg.select(".x.axis")
-        .call(this.xAxis);
+        .call(this.xAxis)
+        .selectAll("text")  
+            .style("text-anchor", "end")
+            .attr("dx", "-.8em")
+            .attr("dy", ".15em")
+            .attr("transform", function(d) {
+                return "translate(-10, 0)" + "rotate(-45)" 
+                });
 
     this.svg.select(".y.axis")
         .call(this.yAxis)
 
+    this.svg
+    	//.select(".d3-tip")
+    	.call(this.tip);
+
     // updates graph
+    var background = this.svg.selectAll(".background")
+        .data(this.displayData.allp);
+    background.enter()
+        .append("rect")
+        .attr("class", "background");
+    background.transition(3000)
+        .attr("width", (that.width-100)/16)
+        .attr("height", function(d) { 
+        	if (view == "prop") {
+        		return (d/total) ==0 || !d/total ? 
+        			0 : (that.height/2-(that.y(d/total)));}
+         	else if (view == "counts") {
+        		return (d/total) ==0 || !d/all_days ? 
+        			0 : (that.height/2-(that.y(d/all_days)));}
+        	else return (that.height/2-that.y(d));
+		})
+        .attr("x", function(d, i) { return that.x(i+1)+100; })
+        .attr("y", function(d) { 
+        	if (view == "prop") {
+        		return (d/total) ==0 || !d/total ? 0 : that.y(d/total);}
+        	else if (view == "counts") {
+        		return (d/all_days) ==0 || !d/all_days ? 0 : that.y(d/all_days);}
+        	else return that.y(d);
+       	})
+        .attr("fill", function(d, i) { 
+        	if (view == "prop") {
+	        	var change = ((partial_data[i]/partial_tot)-(d/total))/(d/total);
+	        	if (change >= 0) {
+	        		return that.metaData["priorities"][i]["item-color"];}
+	        	else return "#d3d3d3"
+	        }
+	        if (view == "counts") {
+	        	var change = ((partial_data[i]/partial_days)-(d/all_days))/(d/all_days);
+	        	if (change >= 0) {
+	        		return that.metaData["priorities"][i]["item-color"];}
+	        	else return "#d3d3d3"
+	        }
+	    	else return "#d3d3d3";
+
+        })
+        .style("opacity", 0.3)
 
     var rect = this.svg.selectAll(".rect")
-        .data(this.displayData);
+        .data(this.displayData.prio);
     rect.enter()
         .append("rect")
         .attr("class", "rect");
     rect.transition(3000)
         .attr("width", (that.width-100)/16)
-        .attr("height", function(d) { return d ==0 ? 0 : (that.height - that.y(d));})
+        .attr("height", function(d, i) { 
+        	if (view == "prop") {
+	        	return (d/partial_tot) ==0 || !d/partial_tot ? 
+	        		0 : (that.height/2-(that.y(d/partial_tot)));}
+	        else if (view == "counts") {
+	        	return (d/partial_days) ==0 || !d/partial_days ? 
+	        		0 : (that.height/2-(that.y(d/partial_days)));}
+	        else return (that.height/2-that.y(d)); 
+	     })
         .attr("x", function(d, i) { return that.x(i+1)+100; })
-        .attr("y", function(d) { return that.y(d);})
-        .attr("fill", function(d, i) { return that.metaData["priorities"][i]["item-color"];})
+        .attr("y", function(d) {  
+        	if (view == "prop") {
+        		return (d/partial_tot) ==0 || !d/partial_tot ? 
+        			0 : that.y(d/partial_tot);}
+        	else if (view == "counts") {
+        		return (d/partial_days) ==0 || !d/partial_days ? 
+        			0 : that.y(d/partial_days);}
+        	else return (that.y(d));
+        	})
+        .attr("fill", function(d, i) { 
+        	if (view == "prop") {
+        		var change = ((d/partial_tot)-(all_data[i]/total))/(all_data[i]/total);
+	        	if (change >= 0) {
+	        		return that.metaData["priorities"][i]["item-color"];}
+	        	else return "#d3d3d3" }
+	        else if (view == "counts") {
+        		var change = ((d/partial_days)-(all_data[i]/all_days))/(all_data[i]/all_days);
+	        	if (change >= 0) {
+	        		return that.metaData["priorities"][i]["item-color"];}
+	        	else return "#d3d3d3" }
+        	else return that.metaData["priorities"][i]["item-color"];})
+     	.style("opacity", function(){
+     		if (view == "prop" || view == "counts") {return 0.5}
+     		else return 1 
+     	})
 
-/*
-    var rows = this.svg.append("g")
-        .selectAll("g.row")
-        .data([this.displayData])
-        
-    rows.enter()
-        .append("g")
-        .attr("class", "row")
- 
-    var bars = rows
-        .append("rect")
-        .attr("class", "background")
-        .attr("width", function(d) { return that.x(d);})
-        .attr("height", 5)
-        .attr("x", 0)
-        .attr("y", function(d, i) { return (5+2)*i; })
-        .attr("fill", "red")
-        //.append("title").text(function(d) { return (gdpformat(prefix.scale(d[year].val))+prefix.symbol); });
 
-    /*rows.append("text")
-        .attr("x", function(d) { return (xScale(min) - 20); })
-        .attr("y", function(d, i) { return (bar_height+2)*i; })
-        .attr("text-anchor", "end")
-        .attr("dx", 3)
-        .attr("dy", "0.65em")
-        .text(function(d) { 
-            if (d[year].name == null) {
-                return d[year].continent; 
-            }
-            else {
-                return d[year].name;
-            }})
-        .attr("fill",function(d) { 
-            if (d[year].val == null) {
-                return "#d3d3d3";
-            }
-        }) */
+	this.tip
+		.html(function(d, i) {
+		  	if (view == "prop") {
+				var change = ((d/partial_tot)-(all_data[i]/total))/(all_data[i]/total);
+				change = d3.round(change*100, 1);
+				return "<strong>" + "Change from Average Proportions" + "</strong> <span style='color:#8F8F8F'>" 
+					+ change + "%</span>";}
+			else if (view == "counts") {
+				var change = ((d/partial_days)-(all_data[i]/all_days))/(all_data[i]/all_days);
+				change = d3.round(change*100, 1);
+				return "<strong>" + "Change from Average Daily Counts" + "</strong> <span style='color:#8F8F8F'>" 
+					+ change + "%</span>";}
+			else {
+				var prop = d/total;
+				prop = d3.round(prop*100, 3);
+				return "<strong>" + "Percent of Total Votes" + "</strong> <span style='color:#8F8F8F'>" 
+					+ prop + "%</span>";}			
+		})
+
+	rect
+	    .on("mouseover", this.tip.show)        
+      	.on("mouseout", this.tip.hide)
+
     rect.exit().remove();
 }
 
@@ -187,9 +294,13 @@ PrioVis.prototype.onSelectionChange= function (selectionStart, selectionEnd){
     
     // TODO: call wrangle function
     this.wrangleData(filterdates, selectionStart, selectionEnd);
-    //console.log(this.displayData)
-    this.updateVis();
-
+	if (d3.select("input[value=\"prop\"]").node().checked) {
+    	this.updateVis("prop");
+	}
+	else if (d3.select("input[value=\"counts\"]").node().checked) {
+    	this.updateVis("counts");
+	}
+	else {this.updateVis("default");}
 
 }
 
@@ -227,30 +338,35 @@ PrioVis.prototype.filterAndAggregate = function(_filter, start, end){
         return 0;
     });
 
+    var all_priorities = d3.range(16).map(function () {
+        return 0;
+    });
+
+  	var all_days = this.data.length;
+
+
+    this.data.forEach(function(d, i) { d.prios.map(function(dd, j) {
+        all_priorities[j] = all_priorities[j] + dd;
+        });
+    });
+
     var filtered = this.data.filter(function(d, i) {
         return (d.time >= start && d.time <= end);
     });
 
-
+    var days = filtered.length;
 
     filtered.forEach(function(d, i) { d.prios.map(function(dd, j) {
         priorities[j] = priorities[j] + dd;
         });
     });
 
-
-    // accumulate all values that fulfill the filter criterion
-    /*this.data
-      .filter(function(d) { 
-        var filtered = filter(that.data, start, end);
-        return filtered; })
-      .forEach(function(d, i) { d.ages.map(function(dd, j) {
-        console.log(dd)
-        res[j] = res[j] + dd;
-        });
-      });*/
-    // TODO: implement the function that filters the data and sums the values
+    var total_count = d3.sum(priorities)
+    var all_total = d3.sum(all_priorities)
     
-    return priorities;
+    var data_final = {"prio":priorities, "days": days, "total":total_count, 
+    "allp": all_priorities, "alldays": all_days, "alltot": all_total}
+
+    return data_final;
 
 }

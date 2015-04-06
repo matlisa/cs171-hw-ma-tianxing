@@ -28,7 +28,6 @@ AgeVis = function(_parentElement, _data, _metaData){
     this.bar_height = 10;
 
     // TODO: define all constants here
-    // NEW
     this.margin = {top: 20, right: 20, bottom: 30, left: 0},
     this.width = getInnerWidth(this.parentElement) - this.margin.left - this.margin.right,
     this.height = 400 - this.margin.top - this.margin.bottom;
@@ -54,12 +53,19 @@ AgeVis.prototype.initVis = function(){
       .append("g")
         .attr("transform", "translate(" + this.margin.left + "," + this.margin.top + ")");
 
+    this.svg.append("text")
+        .attr("class", "title")
+        .attr("x", (this.width/1.5))             
+        .attr("y", 0 - (this.margin.top/3))
+        .style("color", "red")
+        .text("Age Distribution");
+
     // creates axis and scales
     this.x = d3.scale.linear()
       .range([0, this.width-80]);
 
     this.y = d3.scale.linear()
-      .range([this.height, 0]);
+      .range([ 0, this.height]);
 
     this.xAxis = d3.svg.axis()
       .scale(this.x)
@@ -80,13 +86,15 @@ AgeVis.prototype.initVis = function(){
     this.svg.append("g")
         .attr("class", "x axis")
         .attr("transform", "translate(80," + this.height + ")")
-
+    .append("text")
+        .attr("x", 150)
+        .attr("dy", "-0.5em")
+        .style("text-anchor", "end")
+        .text("Frequency");
 
     this.svg.append("g")
         .attr("class", "y axis")
         .attr("transform", "translate(80,0)")
-
-
 
     // filter, aggregate, modify data
     this.wrangleData(null);
@@ -109,11 +117,6 @@ AgeVis.prototype.wrangleData= function(_filterFunction, start, end){
     //// if you don't pass options -- set the default options
     //// the default is: var options = {filter: function(){return true;} }
     //var options = _options || {filter: function(){return true;}};
-
-
-
-
-
 }
 
 
@@ -133,8 +136,6 @@ AgeVis.prototype.updateVis = function(){
     // TODO: ...update scales
     // TODO: ...update graphs
 
-
-
     var that = this;
     // TODO: implement update graphs (D3: update, enter, exit)
     this.x.domain(d3.extent(this.displayData, function(d,i) { return d; }));
@@ -150,9 +151,8 @@ AgeVis.prototype.updateVis = function(){
 
     // updates graph
 
+    /*  if we had wanted to use area instead
 
-
-/*
     var path = this.svg.selectAll(".area")
       .data([this.displayData])
 
@@ -176,45 +176,8 @@ AgeVis.prototype.updateVis = function(){
         .attr("height", that.height/100)
         .attr("x", 80)
         .attr("y", function(d, i) { return (that.height/100)*i; })
-        .attr("fill", "red")
+        .attr("fill", "#7eabf7")
 
-/*
-    var rows = this.svg.append("g")
-        .selectAll("g.row")
-        .data([this.displayData])
-        
-    rows.enter()
-        .append("g")
-        .attr("class", "row")
- 
-    var bars = rows
-        .append("rect")
-        .attr("class", "background")
-        .attr("width", function(d) { return that.x(d);})
-        .attr("height", 5)
-        .attr("x", 0)
-        .attr("y", function(d, i) { return (5+2)*i; })
-        .attr("fill", "red")
-        //.append("title").text(function(d) { return (gdpformat(prefix.scale(d[year].val))+prefix.symbol); });
-
-    /*rows.append("text")
-        .attr("x", function(d) { return (xScale(min) - 20); })
-        .attr("y", function(d, i) { return (bar_height+2)*i; })
-        .attr("text-anchor", "end")
-        .attr("dx", 3)
-        .attr("dy", "0.65em")
-        .text(function(d) { 
-            if (d[year].name == null) {
-                return d[year].continent; 
-            }
-            else {
-                return d[year].name;
-            }})
-        .attr("fill",function(d) { 
-            if (d[year].val == null) {
-                return "#d3d3d3";
-            }
-        }) */
     rect.exit().remove();
 }
 
@@ -229,10 +192,7 @@ AgeVis.prototype.onSelectionChange= function (selectionStart, selectionEnd){
     
     // TODO: call wrangle function
     this.wrangleData(filterdates, selectionStart, selectionEnd);
-    //console.log(this.displayData)
     this.updateVis();
-
-
 }
 
 
@@ -269,6 +229,9 @@ AgeVis.prototype.filterAndAggregate = function(_filter, start, end){
         return 0;
     });
 
+    // accumulate all values that fulfill the filter criterion
+    // TODO: implement the function that filters the data and sums the values
+
     var filtered = this.data.filter(function(d, i) {
         return (d.time >= start && d.time <= end);
     });
@@ -277,23 +240,6 @@ AgeVis.prototype.filterAndAggregate = function(_filter, start, end){
         res[j] = res[j] + dd;
         });
     });
-
-    // accumulate all values that fulfill the filter criterion
-    /*this.data
-      .filter(function(d) { 
-        var filtered = filter(that.data, start, end);
-        return filtered; })
-      .forEach(function(d, i) { d.ages.map(function(dd, j) {
-        console.log(dd)
-        res[j] = res[j] + dd;
-        });
-      });*/
-    // TODO: implement the function that filters the data and sums the values
     
     return res;
-
 }
-
-
-
-

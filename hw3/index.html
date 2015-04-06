@@ -2,7 +2,7 @@
 <html>
 <head lang="en">
     <meta charset="UTF-8">
-    <title>Homework 3 - MyWorld Data</title>
+    <title>MyWorld in Colors</title>
 
     <!-- ADD Libraries-->
 
@@ -11,6 +11,7 @@
     <script src="libs/bootstrap/js/bootstrap.min.js" charset="utf-8"></script>
 
     <script src="http://d3js.org/queue.v1.min.js"></script>
+    <script src="http://labratrevenge.com/d3-tip/javascripts/d3.tip.v0.6.3.js"></script>
 
     <!--Stylesheets-->
     <link rel="stylesheet" type="text/css" href="libs/bootstrap/css/bootstrap.min.css">
@@ -25,61 +26,46 @@
 
     <!-- add own vis classes-->
     <script src="js/countvis.js?ver=1"></script>
-    <script src = "js/priovis.js?ver=3"></script>
-    <script src = "js/agevis.js?ver=1"></script>
+    <script src = "js/priovis.js?ver=1"></script>
+    <script src = "js/agevis.js?ver=2"></script>
     
 
     <!-- add own stylesheet-->
-    <link rel="stylesheet" type="text/css" href="css/myStyle.css">
+    <link rel="stylesheet" type="text/css" href="css/myStyle.css?ver=2">
 
 </head>
 <body>
     <div class="container">
-        <h1>Homework 3 - MyWorld 2015 Data Visualization</h1>
+        <h1>MyWorld in Colors</h1>
 
         <div class="row">
             <div class="col-md-8 col-sm-12">
-               <p> The following visualization shows you the votes for MyWorld 2015. You can select a time range to see changes in the distribution of votes und distribution of age of the voters.</p>
+               <p> The following visualization shows you the votes for MyWorld 2015. You can select a time range to see changes in the distribution of votes, distribution of age of the voters, and distribution of priorities.</p>
             </div>
 
         </div>
 
         <div class="row">
-            <div class="col-md-2">
-                <button class="btn btn-sm btn-primary" id="fitInBtn"> <span class="glyphicon glyphicon-resize-horizontal"></span> reset zoom </button>
-            </div>
-
             <div class="col-md-8">
-                <b>current brush:</b> <span id="brushInfo"></span>
+                <b>Current Selection:</b> <span id="brushInfo"></span>
             </div>
-
-
-
         </div>
 
 
 
         <div class="row">
             <div class="col-md-9" id="countVis">
-                <!-- TODO: delete placeholder svg element
-                <svg width="650" height="330" style="background-color: lightblue">
-                    <text x="50" y="50">HERE should be CountVis</text>
-                </svg> -->
             </div>
             <div class="col-md-3" id="ageVis">
-                <!-- TODO: delete placeholder svg element 
-                <svg width="230" height="330" style="background-color: lightcoral">
-                    <text x="50" y="50">HERE should be AgeVis</text>
-                </svg>-->
             </div>
         </div>
 
         <div class="row">
             <div class="col-md-12" id="prioVis">
-                <!-- TODO: delete placeholder svg element 
-                <svg width="650" height="440" style="background-color: lightgreen">
-                    <text x="50" y="50">HERE should be PrioVis</text>
-                </svg>-->
+                <strong>Graph by: </strong>
+                <label><input type="radio" name="graph" value="default" checked = "checked"> Default</label>
+                <label><input type="radio" name="graph" value="prop"> Proportions</label>
+                <label><input type="radio" name="graph" value="counts"> Counts</label>
             </div>
 
         </div>
@@ -99,7 +85,7 @@
             // variables keeping global knowledge of the data
             var allData = [];
             var metaData = {};
-
+            var prio_vis;
             // this function can convert Date objects to a string
             // it can also convert strings to Date objects
             // see: https://github.com/mbostock/d3/wiki/Time-Formatting
@@ -116,17 +102,30 @@
                 //TODO: Instantiate all Vis Objects here
                 var count_vis = new CountVis(d3.select("#countVis"), allData, metaData, MyEventHandler);
                 var age_vis = new AgeVis(d3.select("#ageVis"), allData, metaData, MyEventHandler);
-                var prio_vis = new PrioVis(d3.select("#prioVis"), allData, metaData, MyEventHandler);
+                prio_vis = new PrioVis(d3.select("#prioVis"), allData, metaData, MyEventHandler);
 
                 // TODO: bind the eventHandler to the Vis Objects
                 // events will be created from the CountVis object (nothing to do here)
                 // events will be consumed by the PrioVis and AgeVis object (binding should happen here)
                 $(MyEventHandler).bind("selectionChanged", function(event, d, e){
-                    //console.log(d, e);
                     age_vis.onSelectionChange(d, e);
                     prio_vis.onSelectionChange(d, e);
                 });
+
+
             }
+            // changes in the priority graph
+            d3.select("input[value=\"counts\"]").on("change", function() {
+                prio_vis.updateVis("counts");
+            })
+            d3.select("input[value=\"prop\"]").on("change", function() {
+                prio_vis.updateVis("prop");
+            })
+            d3.select("input[value=\"default\"]").on("change", function() {
+                prio_vis.updateVis("default");
+            })
+
+
 
             // call this function after both files are loaded -- error should be "null" if no error
             var dataLoaded = function (error, _allData, _metaData) {
@@ -146,13 +145,13 @@
 
 
                     allData = _allData.map(function (d) {
+
                                 var res = {
                                     time: dateFormatter.parse(d.day),
                                     count: parseInt(d["count(*)"])
                                 };
 
                                 // TODO: implement that  !!
-                                // DONE?
                                 res.prios = []
                                 // should be an array of 16 numbers with the total count MAPping the prio values,
                                 //  [d["sum(p0)"], d["sum(p1)"], d["sum(p2)"],...]
@@ -161,7 +160,7 @@
                                 for (var i = 0; i < 16; i++) {
                                     res.prios[i] = d["sum(p" + i + ")"]
                                 }
-
+                                
 
                                 // This is ONE way to create an array of length 100
                                 // and set every value to "0")
@@ -170,7 +169,6 @@
                                 
 
                                 // TODO: Assign the count for each age to the index position
-                                // DONE?
 
                                 // eg: res.ages[22] should contain the count value for age 22
                                 // BE AWARE THAT THE DATA MIGHT CONTAIN ages >99 which you have to handle especially
@@ -198,7 +196,6 @@
             var startHere = function(){
 
                 //TODO: load data here and call "dataLoaded" afterwards
-                // DONE?
                 // Hint: http://giscollective.org/d3-queue-js/
                 queue()
                     .defer(d3.json, "data/perDayData.json")
@@ -219,40 +216,37 @@
             startHere();
         })
 
-var getInnerWidth = function(element) {
-    var style = window.getComputedStyle(element.node(), null);
+    var getInnerWidth = function(element) {
+        var style = window.getComputedStyle(element.node(), null);
 
-    return parseInt(style.getPropertyValue('width'));
-}
+        return parseInt(style.getPropertyValue('width'));
+    }
 
-var filterdates = function(data, from, to) {
-    
-    var filtered = data.filter(function(d, i) {
-        return (d.time >= from && d.time <= to);
-    });
+    var filterdates = function(data, from, to) {
+        
+        var filtered = data.filter(function(d, i) {
+            return (d.time >= from && d.time <= to);
+        });
 
-    return filtered;
+        return filtered;
 
-}
+    }
 
-var aggregateCountsForRange = function(filtered){
+    var aggregateCountsForRange = function(filtered){
 
-    var count = 0;
+        var count = 0;
 
-    // TODO: TASK 2 B -- count here for the given time range
-    // you might make use of the map and filter functions
-    // HINT: javascript Date objects are comparable !!
-    // see: http://www.w3schools.com/js/js_date_methods.asp
+        // TODO: TASK 2 B -- count here for the given time range
+        // you might make use of the map and filter functions
+        // HINT: javascript Date objects are comparable !!
+        // see: http://www.w3schools.com/js/js_date_methods.asp
 
-    
+        filtered.forEach(function(d) {
+            count = count + d.count;
+        })
+        return count;
+    }
 
-    filtered.forEach(function(d) {
-        count = count + d.count;
-    })
-    
-    return count;
-
-}
     </script>
 </body>
 </html>

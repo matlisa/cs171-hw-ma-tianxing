@@ -25,14 +25,12 @@ CountVis = function(_parentElement, _data, _metaData, _eventHandler){
     this.metaData = _metaData;
     this.eventHandler = _eventHandler;
     this.displayData = [];
-
+    this.originalData = [];
 
     // TODO: define all "constants" here
     this.margin = {top: 20, right: 20, bottom: 30, left: 0},
     this.width = getInnerWidth(this.parentElement) - this.margin.left - this.margin.right,
     this.height = 400 - this.margin.top - this.margin.bottom;
-
-
 
     this.initVis();
 }
@@ -53,7 +51,6 @@ CountVis.prototype.initVis = function(){
     // -  implement brushing !!
     // --- ONLY FOR BONUS ---  implement zooming
     
-
     // TODO: modify this to append an svg element, not modify the current placeholder SVG element
 
     this.svg = this.parentElement.append("svg")
@@ -62,6 +59,13 @@ CountVis.prototype.initVis = function(){
       .append("g")
         .attr("transform", "translate(" + this.margin.left + "," + this.margin.top + ")");
 
+    this.svg.append("text")
+        .attr("class", "title")
+        .attr("x", (this.width / 2))             
+        .attr("y", 0 - (this.margin.top/3))
+        .style("color", "red")
+        .text("Votes over Time");
+
     // creates axis and scales
     this.x = d3.time.scale()
       .range([0, this.width-100]);
@@ -69,8 +73,10 @@ CountVis.prototype.initVis = function(){
     this.xbrush = d3.time.scale()
       .range([100, this.width]);
 
-    this.y = d3.scale.linear()
-      .range([this.height, 0]);
+    this.y = d3.scale.pow()
+      .range([this.height, 0])
+
+    this.deform = d3.scale.pow()
 
     this.xAxis = d3.svg.axis()
       .scale(this.x)
@@ -80,9 +86,7 @@ CountVis.prototype.initVis = function(){
     this.yAxis = d3.svg.axis()
       .scale(this.y)
       .orient("left")
-      .ticks(5);
-
-
+      .ticks(6);
 
     this.area = d3.svg.area()
       .interpolate("monotone")
@@ -93,13 +97,12 @@ CountVis.prototype.initVis = function(){
     this.brush = d3.svg.brush()
       .on("brush", function(d) {
         $(that.eventHandler).trigger("selectionChanged", that.brush.extent());
-        brushed(that.displayData, that.brush.extent());})
+        brushed(that.originalData, that.brush.extent());})
 
     // Add axes visual elements
     this.svg.append("g")
         .attr("class", "x axis")
         .attr("transform", "translate(100," + this.height + ")")
-
 
     this.svg.append("g")
         .attr("class", "y axis")
@@ -109,7 +112,7 @@ CountVis.prototype.initVis = function(){
         .attr("y", 6)
         .attr("dy", ".71em")
         .style("text-anchor", "end")
-        .text("Call volume, daily");
+        .text("Number of voters, daily")
 
     this.svg.append("g")
       .attr("class", "brush");
@@ -117,12 +120,11 @@ CountVis.prototype.initVis = function(){
     //TODO: implement the slider -- see example at http://bl.ocks.org/mbostock/6452972
     this.addSlider(this.svg)
 
-
     // filter, aggregate, modify data
     this.wrangleData();
 
     // call the update method
-    this.updateVis();
+    this.updateVis(that.displayData);
 }
 
 
@@ -135,7 +137,7 @@ CountVis.prototype.wrangleData= function(){
     // displayData should hold the data which is visualized
     // pretty simple in this case -- no modifications needed
     this.displayData = this.data;
-
+    this.originalData = this.data;
 }
 
 
@@ -158,15 +160,10 @@ CountVis.prototype.updateVis = function(){
 
     this.svg.select(".y.axis")
         .call(this.yAxis)
-
-    /*
-    var valueline = d3.svg.line()
-        .x(function(d) { return that.x(d.time); })
-        .y(function(d) { return that.y(d.count); });
-
-    this.svg.append("path")      
-        .attr("class", "line")
-        .attr("d", valueline(this.displayData));*/
+        .selectAll(".tick").each(function(data) {
+            var tick = d3.select(this)
+                .attr("transform", "translate(0," + that.y(that.deform(data)) + ")");
+        });
 
     // updates graph
     var path = this.svg.selectAll(".area")
@@ -189,7 +186,6 @@ CountVis.prototype.updateVis = function(){
         .call(this.brush)
       .selectAll("rect")
         .attr("height", this.height);
-
 }
 
 /**
@@ -201,10 +197,7 @@ CountVis.prototype.updateVis = function(){
 CountVis.prototype.onSelectionChange= function (selectionStart, selectionEnd){
 
     // TODO: call wrangle function
-
     // do nothing -- no update when brushing
-
-
 }
 
 
@@ -228,22 +221,30 @@ CountVis.prototype.addSlider = function(svg){
     var that = this;
 
     // TODO: Think of what is domain and what is range for the y axis slider !!
-    var sliderScale = d3.scale.linear().domain([0,200]).range([0,200])
+    var sliderScale = d3.scale.linear().domain([0.01,0.99]).range([0, 200])
 
     var sliderDragged = function(){
         var value = Math.max(0, Math.min(200,d3.event.y));
         var sliderValue = sliderScale.invert(value);
 
         // TODO: do something here to deform the y scale
-        console.log("Y Axis Slider value: ", sliderValue);
-
-
+        that.displayData = that.originalData;
+        
+        that.deform
+            .domain(d3.extent(that.displayData, function(d) { return d.count; }))
+            .range(d3.extent(that.displayData, function(d) { return d.count; }))
+            .exponent(sliderValue)
+        
         d3.select(this)
             .attr("y", function () {
                 return sliderScale(sliderValue);
             })
 
-        that.updateVis({});
+        that.displayData = that.displayData.map(function(d, i) {
+            return {count: that.deform(d.count), time: d.time};
+        })
+
+        that.updateVis();
     }
     var sliderDragBehaviour = d3.behavior.drag()
         .on("drag", sliderDragged)
@@ -273,17 +274,15 @@ CountVis.prototype.addSlider = function(svg){
         fill:"#333333"
     }).call(sliderDragBehaviour)
 
-
 }
 
 function brushed(data, extent) {
+    var dateFormatter = d3.time.format("%Y.%m.%d");
+    
     var filtered_data = filterdates(data, extent[0], extent[1]);
     var counts = aggregateCountsForRange(filtered_data);
     var div = document.getElementById('brushInfo');
-    div.innerHTML = counts;
+    div.innerHTML = 
+    "Time Interval: " + dateFormatter(extent[0]) + " to " + 
+    dateFormatter(extent[1]) + ", Total Number of Voters: " + counts;
 }
-
-
-
-
-
