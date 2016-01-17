@@ -557,9 +557,15 @@
       .data(data);
 
     node
-      .enter().append("circle")
+      .enter().append("image")
+      .attr("xlink:href", "http://www.clipartbest.com/cliparts/9Tz/EpE/9TzEpEaxc.png")
+      .attr("x", -8)
+      .attr("y", -8)
+      .attr("width", 16)
+      .attr("height", 16);
+      //.append("circle")
       .attr("class", "node")
-      .attr("r", 5.5)
+      //.attr("r", 5.5)
       .style("fill", function(d) { return color(d.continent); })
       .call(force.drag)
       .on("click", function(d) {
@@ -576,12 +582,7 @@
       .on("mouseover", tip.show)        
       .on("mouseout", tip.hide)
     
-    node.append("image")
-      .attr("xlink:href", "http://www.clipartbest.com/cliparts/9Tz/EpE/9TzEpEaxc.png")
-      .attr("x", -8)
-      .attr("y", -8)
-      .attr("width", 16)
-      .attr("height", 16);
+
 
     node
       .exit()
