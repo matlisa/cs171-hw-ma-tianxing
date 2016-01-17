@@ -1,15 +1,20 @@
 <!DOCTYPE html>
 <html>
 <head>
-<script src="http://d3js.org/d3.v3.min.js"></script>
-<script src="http://labratrevenge.com/d3-tip/javascripts/d3.tip.v0.6.3.js"></script>
+<link href='http://fonts.googleapis.com/css?family=Lato&subset=latin,latin-ext' rel='stylesheet' type='text/css'>
+
+<link href='https://fonts.googleapis.com/css?family=Arvo' rel='stylesheet' type='text/css'>
+
+<script src="resources/d3.min.js"></script>
+<script src="resources/d3tip.js"></script>
   <style type="text/css">
     body {
       width: 960px;
       text-align: center;
       margin: 15px auto;
-      font-family: Century Gothic,CenturyGothic,AppleGothic,sans-serif; 
-      background-color: #E5F9FF;
+      font-family: 'Arvo', serif;
+      background-color: #011C34;
+      color:white;
     } 
     circle {
       fill: steelblue;
@@ -422,13 +427,16 @@
       track_alpha = 0;
 
       var year = parseInt(d3.select('#slider-time').property("value")) + 1995;
+      
       message
         .style("visibility", "visible")
         .text(country_selected + " is not a top export partner of any country in " + year + ". Please reset.")
+
     }
     else {
       message
         .style("visibility", "hidden")
+
 
       var length = find_length(data.links, data.links[0].target.name, data.links[0].target.country_id, year);
     }
@@ -522,19 +530,19 @@
   d3.json("data/countries_1995_2012.json", function(data) {
 
 
-    var background = svg.selectAll(".background")
-      .data([1.6, 2.5])
+    // var background = svg.selectAll(".background")
+    //   .data([1.6, 2.5])
     
-    background
-      .enter().append("circle")
-      .attr("class", "background")
-      .attr("r", function(d, i) { return r/d; })
-      .attr("cx", width/2)
-      .attr("cy", height/2)
-      .style("fill", function(d) {
-        if (d == 2.2) { return "#fff";}
-        else {return "#fff"} })
-      .style("opacity", 0.7)
+    // background
+    //   .enter().append("circle")
+    //   .attr("class", "background")
+    //   .attr("r", function(d, i) { return r/d; })
+    //   .attr("cx", width/2)
+    //   .attr("cy", height/2)
+    //   .style("fill", function(d) {
+    //     if (d == 2.2) { return "#fff";}
+    //     else {return "#fff"} })
+    //   .style("opacity", 0.7)
 
     var start_year = d3.select('#slider-time').property("value");
     trial_links = package_imports(data, start_year);
@@ -576,10 +584,19 @@
       .on("mouseover", tip.show)        
       .on("mouseout", tip.hide)
     
-    // node.append("image")
+
+    node.append("image")
+      .attr("xlink:href", "https://github.com/favicon.ico")
+      .attr("x", -8)
+      .attr("y", -8)
+      .attr("width", 16)
+      .attr("height", 16);
+    // var foreground = svg.selectAll(".foreground")
+    // foreground.append("image")
+    //   .attr("class", "foreground")
     //   .attr("xlink:href", "http://www.clipartbest.com/cliparts/9Tz/EpE/9TzEpEaxc.png")
-    //   .attr("x", -8)
-    //   .attr("y", -8)
+    //   .attr("x", width/2)
+    //   .attr("y", height/2)
     //   .attr("width", 16)
     //   .attr("height", 16);
 
@@ -596,6 +613,7 @@
       .attr("text-anchor", "middle")
       .attr("x", width/2)
       .attr("y", height/2)
+      .style("fill", "white")
 
     force
       .nodes(all_data.nodes)
