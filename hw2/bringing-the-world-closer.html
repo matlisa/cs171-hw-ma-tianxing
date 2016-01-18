@@ -1,0 +1,824 @@
+<!DOCTYPE html>
+<html class="html" lang="en-US">
+ <head>
+  <link href='http://fonts.googleapis.com/css?family=Lato&subset=latin,latin-ext' rel='stylesheet' type='text/css'>
+
+  <link href='https://fonts.googleapis.com/css?family=Arvo' rel='stylesheet' type='text/css'>
+
+  <script src="resources/d3.min.js"></script>
+  <script src="resources/d3tip.js?ver=2"></script>
+
+  <script type="text/javascript">
+   if(typeof Muse == "undefined") window.Muse = {}; window.Muse.assets = {"required":["jquery-1.8.3.min.js", "museutils.js", "jquery.scrolleffects.js", "jquery.watch.js", "bringing-the-world-closer.css"], "outOfDate":[]};
+</script>
+  
+  <meta http-equiv="Content-type" content="text/html;charset=UTF-8"/>
+  <meta name="generator" content="2015.0.2.310"/>
+  <title>Bringing the World Closer</title>
+  <!-- CSS -->
+  <link rel="stylesheet" type="text/css" href="css/site_global.css?4198781133"/>
+  <link rel="stylesheet" type="text/css" href="css/bringing-the-world-closer.css?365474652" id="pagesheet"/>
+  <!-- Other scripts -->
+  <script type="text/javascript">
+   document.documentElement.className += ' js';
+</script>
+    <style type="text/css">
+      circle {
+        fill: steelblue;
+        stroke: #fff;
+        stroke-width: 1;
+      }
+      .link {
+        stroke: #d3d3d3;
+        stroke-opacity: 0.5;
+      }
+      .lab {
+        font-size: x-large;
+        opacity: 0.03;
+      }
+      .axis path,
+      .axis line {
+          fill: none;
+          stroke: black;
+          shape-rendering: crispEdges;
+      }
+      .axis text {
+          font-family: sans-serif;
+          font-size: small;
+      }
+      .d3-tip {
+        line-height: 1;
+        /*font-weight: bold;*/
+        font-family: Arvo;
+        padding: 12px;
+        background: #d3d3d3;
+        color: #fff;
+        border-radius: 2px;
+        z-index: 10000;
+      }
+
+      /* Creates a small triangle extender for the tooltip */
+      .d3-tip:after {
+        box-sizing: border-box;
+        display: inline;
+        font-size: 10px;
+        width: 100%;
+        line-height: 1;
+        color: #d3d3d3;
+        content: "\25BC";
+        position: absolute;
+        text-align: center;
+      }
+
+      /* Style northward tooltips differently */
+      .d3-tip.n:after {
+        margin: -1px 0 0 0;
+        top: 100%;
+        left: 0;
+      }
+    </style>
+   </head>
+ <body>
+
+  <div class="clearfix" id="page"><!-- column -->
+   <div class="position_content" id="page_position_content">
+    <div class="browser_width" id="u4578-bw">
+     <div class="ose_pre_init pinned-colelem" id="u4578"><!-- simple frame --></div>
+    </div>
+    <div class="clearfix mse_pre_init" id="u4563-4"><!-- content -->
+     <p>BRINGING</p>
+    </div>
+    <div class="clearfix mse_pre_init" id="u4552-4"><!-- content -->
+     <p>T</p>
+    </div>
+    <div class="clearfix mse_pre_init" id="u4558-4"><!-- content -->
+     <p>H</p>
+    </div>
+    <div class="clearfix mse_pre_init" id="u4559-4"><!-- content -->
+     <p>E</p>
+    </div>
+    <div class="clearfix mse_pre_init" id="u4565-4"><!-- content -->
+     <p>W</p>
+    </div>
+    <div class="clearfix mse_pre_init" id="u4566-4"><!-- content -->
+     <p>O</p>
+    </div>
+    <div class="clearfix mse_pre_init" id="u4560-4"><!-- content -->
+     <p>R</p>
+    </div>
+    <div class="clearfix mse_pre_init" id="u4567-4"><!-- content -->
+     <p>L</p>
+    </div>
+    <div class="clearfix mse_pre_init" id="u4568-4"><!-- content -->
+     <p>D</p>
+    </div>
+    <div class="clearfix mse_pre_init" id="u4553-4"><!-- content -->
+     <p>C</p>
+    </div>
+    <div class="clearfix mse_pre_init" id="u4570-4"><!-- content -->
+     <p>L</p>
+    </div>
+    <div class="clearfix mse_pre_init" id="u4571-4"><!-- content -->
+     <p>O</p>
+    </div>
+    <div class="clearfix mse_pre_init" id="u4572-4"><!-- content -->
+     <p>S</p>
+    </div>
+    <div class="clearfix mse_pre_init" id="u4555-4"><!-- content -->
+     <p>E</p>
+    </div>
+    <div class="clearfix mse_pre_init" id="u4554-4"><!-- content -->
+     <p>R</p>
+    </div>
+    <a class="anchor_item colelem" id="vis"></a>
+    <div class="clearfix colelem" id="pu4596"><!-- group -->
+     <div class="clearfix grpelem" id="u4596"><!-- group -->
+      <div class="clearfix grpelem" id="u4606-10"><!-- content -->
+       <p>Sort Country By:</p>
+       <p><input type="radio" name="map" value="gdp">  GDP</p>
+       <p><input type="radio" name="map" value="population">  Population</p>
+       <p><input type="radio" name="map" value="alpha">  Alphabetical Order</p>
+      </div>
+     </div>
+     <div class="clearfix grpelem" id="u4600"><!-- group -->
+      <div class="clearfix grpelem" id="u4607-8"><!-- content -->
+       <p>Link Distance:</p>
+       <p><input type="radio" name="dist" value="not_weighted" checked = "checked" id = "not_weighted">  Not Weighted</p>
+       <p><input type="radio" name="dist" value="weighted" id = "weighted">  Weighted by Export Amount</p>
+      </div>
+     </div>
+     <div class="clearfix grpelem" id="u4601"><!-- group -->
+      <div class="clearfix grpelem" id="u4594-4"><!-- content -->
+       <p>Year:</p>
+       <label id = "min_time">1995 </label><input type="range" name="years" min="0" max="17" step="1" value="0" id="slider-time" oninput=";"><label id = "max_time"> 2012</label>
+      </div>
+     </div>
+    </div>
+    <div class="clearfix colelem" id="pu4586"><!-- group -->
+     <div class="grpelem" id="u4586"><!-- custom html -->
+      <div id="demo"> 
+
+
+
+
+   
+
+  <script type="text/javascript">
+
+  var margin = {top: 0, bottom: 10, left: 20, right: 20};
+  var width = 1000 - margin.left - margin.right;
+  var height = 550 - margin.top - margin.bottom;
+
+  var xscale = d3.scale.linear().range([10, width]);
+  var yscale = d3.scale.linear().range([0, height]);
+  var exscale = d3.scale.linear().range([5, height/25]);
+  var linkscale = d3.scale.linear().range([20, height/1.6]);
+
+  var group_scale = d3.scale.ordinal().domain(["Africa", "Asia", "Oceania", "Europe", "Americas"])
+
+  var gdpformat = d3.format("0,.1f");
+  var prefix = d3.formatPrefix(1.25e9);
+  var prefix_pop = d3.formatPrefix(1.25e6);
+
+  // Creates sources <svg> element and inner g (for margins)
+  var svg = d3.select("#demo").append("svg")
+              .attr("width", width+margin.left+margin.right)
+              .attr("height", height+margin.top+margin.bottom)
+            .append("g")
+              .attr("transform", "translate("+margin.left+","+margin.top+")");
+
+  var x_axis = d3.svg.axis()
+                     .scale(xscale)
+                     .orient("bottom")
+
+  var force = d3.layout.force()
+      .size([width, height])
+      .charge(-300)
+      .gravity(0.7)
+
+  var node, message, max_value, min_value;
+  var track_alpha =0;
+  var written = 0;
+  
+  var continent_names, country_selected;
+
+  var longi, lat, dist, weight, length = 0;
+
+  var color = d3.scale.category20();
+
+  var pie = d3.layout.pie();
+
+  r = Math.min(height, width)/1.3;
+
+  var arc = d3.svg.arc()
+            .innerRadius(0);
+
+  var tip = d3.tip()
+    .attr('class', 'd3-tip')
+    .offset([-10, 0])
+    .style("opacity", 0)
+
+  function circular_layout(data, val, year) {
+    var countries = ["Greece", "Italy"]
+    
+    var filtered = data.filter(function(d, i) {
+        if (countries.indexOf(d.name) > -1) {
+        return true;}
+    }) 
+
+    track_alpha = 0;
+    d3.select("#force").property("checked", false);
+
+    var empty = [];
+    link = svg.selectAll(".link")
+        .data(empty);
+
+    link
+      .exit()
+      .remove();
+
+    force.stop();
+
+    svg.call(tip);
+    
+    arc.outerRadius(r);
+    pie
+      .sort(function(a, b) { 
+      if (val == "name") {
+        return d3.ascending(a[val], b[val]);
+      }
+      else {
+        return d3.ascending(a.years[year][val], b.years[year][val]);}}) // Sorting by categories
+      .value(function(d, i) { 
+        return 1;  // We want an equal pie share/slice for each point
+      });
+
+    data = pie(data).map(function(d, i) {
+      // Needed to caclulate the centroid
+      
+      d.innerRadius = 0;
+      d.outerRadius = r;
+      // Building the data object we are going to return
+      d.data.x = arc.centroid(d)[0]+width/2;
+      d.data.y = arc.centroid(d)[1]+height/2;
+      return d.data;
+    })
+
+    node.transition().duration(500)
+      .attr("cx", function(d) { return d.x; })
+      .attr("cy", function(d) { return d.y; })
+
+    if (val == "gdp") {
+      tip
+        .html(function(d) {
+          return "<strong>" + d.name + "</strong> <span style='color:#8F8F8F'>" + (gdpformat(prefix.scale(d.years[year]["gdp"]))+prefix.symbol) + "</span>";
+      })
+    }
+    else if (val == "population") {
+      tip
+        .html(function(d) {
+          return "<strong>" + d.name + "</strong> <span style='color:#8F8F8F'>" + (gdpformat(prefix_pop.scale(d.years[year]["population"]))+prefix_pop.symbol) + "</span>";
+      })
+    }
+    else if (val == "name") {
+      tip
+        .html(function(d) {
+          return "<strong>" + d.name + "</strong>";
+      })
+    }
+    node
+      .on("mouseover", tip.show)        
+      .on("mouseout", tip.hide)
+  }
+
+  function get_coordinates(data, country) {
+    if (data.name == country) {
+      return [data.longitude, data.latitude];
+    } 
+  }
+
+  function get_index(data, country, year) {
+    for (var i = 0; i <10; i++) {
+        if(data.years[year].top_partners[i].country_id == country) {
+          index = i;
+          break;
+        }
+        else index = -1;
+    }
+    return index;
+  }
+
+  function filter_links (data, country) {
+    var filtered = data.filter(function(d, i) {
+        return (d.target.name == country);
+      }) 
+    return filtered;
+  }
+
+  function find_length(data, country, id, year) {
+    var max_length = 0;
+    var min_length = 0;
+    var max_dist = 0;
+    var min_dist = 0;
+
+    var sum = 0;
+
+    var lat = [];
+    var longi = [];
+    var dist = [];
+
+    var weight = [];
+    var length= [];
+    var index = [];
+    var location = get_coordinates(data[0].target, country);
+    
+    for (var i = 0; i < data.length; i ++) {
+
+      index[i] = get_index(data[i].source, id, year);
+      if (index[i] != -1){
+        lat[i] = data[i].source.latitude;
+        longi[i] = data[i].source.longitude;
+        dist[i] = Math.sqrt((longi[i]-location[0])* (longi[i]-location[0])+ (lat[i] - location[1])*(lat[i] - location[1]));
+        if (min_dist > dist[i]) {
+          min_dist = dist[i];
+        }
+        if (max_dist < dist[i]) {
+          max_dist = dist[i];
+        }
+        sum = (data[i].source.years[year].top_partners[index[i]].total_export) + sum;
+      }
+    }
+        
+    for (var i = 0; i < data.length; i ++) {
+      if (index[i] != -1 ){
+        weight[i] = (data[i].source.years[year].top_partners[index[i]].total_export)/sum;
+        length[i] = (1/Math.sqrt(Math.sqrt(weight[i])))*dist[i];
+        
+        if (min_length > length[i]) {
+          min_length = length[i];
+        }
+        if (max_length < length[i]) {
+          max_length = length[i];
+        }
+      }
+    }
+    return [min_length, max_length, length, min_dist, max_dist, dist];
+  }
+
+  function package_imports(nodes, year) {
+    
+    var map = {},
+        imports = [];
+
+    nodes.forEach(function(d) {
+      map[d.country_id] = d;
+    });
+
+    nodes.forEach(function(d) {
+      if (d != "") {
+        if (d.years[year].top_partners) { d.years[year].top_partners.forEach(function(dd) {
+          if (map[dd.country_id] && map[d.country_id]) {
+          imports.push({source: map[d.country_id], target: map[dd.country_id]}); }
+          })
+        }
+      }
+    });
+    return imports;
+  }
+
+  function force_layout_all() {
+    message
+      .style("visibility", "hidden")
+    if (track_alpha < 0.05) { force.start();}
+    force.on("tick", tick_all)
+  }
+
+  function tick_all(e) {
+    track_alpha = e.alpha;
+    node
+      .attr("cx", function(d) {return d.x;})
+      .attr("cy", function(d) {return d.y;})
+  }
+
+  function force_change(data, year){
+
+    force
+      .charge(-30)
+      .gravity(0.1)
+      .linkDistance(function(d,i){ 
+        if (d3.select("input[value=\"not_weighted\"]").node().checked) {
+          linkscale.domain([length[3], length[4]]);
+          if (length[5][i]) {
+            return linkscale(length[5][i]);}
+          else return 0;
+        }
+        else if (d3.select("input[value=\"weighted\"]").node().checked) {
+          linkscale.domain([length[0], length[1]]);
+          if (length[2][i]) {
+            return linkscale(length[2][i]);}
+          else return 0;
+        }
+      })
+    svg.call(tip);
+
+    link = svg.selectAll(".link")
+        .data(data.links);
+
+    link
+      .enter().append("line")
+      .attr("class", "link")
+
+    link
+      .exit()
+      .remove();
+
+    node = svg.selectAll(".node")
+      .data(data.nodes);
+
+    node
+      .enter().append("circle")
+      .attr("class", "node")
+      .style("fill", function(d) {color(d.continent); })
+
+    node
+      .call(force.drag)
+      .transition().duration(2000)
+      .attr("r", function(d) {
+        var year = d3.select('#slider-time').property("value");
+        if (data.links.length != 0) {
+          
+          var index = get_index(d, data.links[0].target.country_id, year);
+
+          if (index == -1) {
+            if (d.name == data.links[0].target.name) {
+              return 10;
+            }
+            else { return 0;}
+          }
+          else {  
+            var min = d3.min(data.nodes, function(dd){
+              return dd.years[year].top_partners[index].total_export;})
+            var max = d3.max(data.nodes, function(dd){
+              return dd.years[year].top_partners[index].total_export;})
+            exscale.domain([min, max]);
+            return exscale(d.years[year].top_partners[index].total_export);
+          }
+        }
+      })
+      .style("stroke", function(d) {
+        if (d.name == country_selected) {
+          return "red";} 
+      })
+      .style("stroke-width", function(d) {
+        if (d.name == country_selected) {
+          return 1.5;} 
+      })
+
+   
+    tip 
+      .html(function(d) {
+        if (d.name != data.links[0].target.name) {
+          return "<strong>" + d.name + "</strong> <span style='color:#8F8F8F'>" + (gdpformat(prefix_pop.scale(d.years[year].top_partners[index].total_export))+prefix_pop.symbol) + "</span>";}
+        else {return "<strong>" + d.name + "</strong>";}
+      })
+
+    node
+      .on("mouseover", tip.show)        
+      .on("mouseout", tip.hide)
+
+
+    node
+      .exit()
+      .remove();
+
+    if (data.links.length == 0 && written == 0) { 
+
+      track_alpha = 0;
+
+      var year = parseInt(d3.select('#slider-time').property("value")) + 1995;
+      
+      message
+        .style("visibility", "visible")
+        .text(country_selected + " is not a top export partner of any country in " + year + ". Please reset.")
+
+    }
+    else {
+      message
+        .style("visibility", "hidden")
+
+
+      var length = find_length(data.links, data.links[0].target.name, data.links[0].target.country_id, year);
+    }
+      force
+        .nodes(data.nodes)
+        .links(data.links)
+
+      force.start();
+
+      force.on("tick", function(e) {
+        track_alpha = e.alpha;
+
+        node.attr("cx", function(d) { return d.x; })
+          .attr("cy", function(d) { return d.y; });
+        link.attr("x1", function(d, i) { return d.source.x; })
+          .attr("y1", function(d) { return d.source.y; })
+          .attr("x2", function(d) { return d.target.x; })
+          .attr("y2", function(d) { return d.target.y; })
+      })
+    
+  }
+
+  function reset(data, all_data, trial_links) {
+
+      var empty = [];
+
+      link = svg.selectAll(".link")
+          .data(empty);
+
+      link
+        .enter().append("line")
+        .attr("class", "link")  
+
+      link
+        .exit()
+        .remove();
+
+      node = svg.selectAll(".node")
+        .data(all_data.nodes);
+
+      node
+        .enter().append("circle")
+
+      node
+        .attr("class", "node")
+        .attr("r", 5.5)
+        .style("fill", function(d) { return color(d.continent); })
+        .call(force.drag)
+        .on("click", function(d) {
+          d3.select('#force').property("checked", "checked");
+          if (d.name != "") {
+            var year = d3.select('#slider-time').property("value");
+            trial_links = package_imports(data, year);
+            country_selected = d.name;
+            var new_links = filter_links(trial_links, d.name);
+            var new_data = {"nodes":data, "links":new_links};
+            force_change(new_data, year);
+          }
+          
+        })
+        .style("stroke", function(d) {
+          if (d.name == country_selected) {
+            return "white";} 
+        })
+        .style("stroke-width", function(d) {
+          if (d.name == country_selected) {
+            return 1;} 
+        })
+        .on("mouseover", tip.show)        
+        .on("mouseout", tip.hide)
+      
+      svg.call(tip);
+
+      tip
+        .html(function(d) {
+          return "<strong>" + d.name + "</strong>";
+      })
+
+      node
+        .exit()
+        .remove();
+
+      country_selected = "";
+
+      force
+        .nodes(all_data.nodes)
+
+      force_layout_all();
+  }
+
+  d3.json("data/countries_1995_2012.json", function(data) {
+
+
+    // var background = svg.selectAll(".background")
+    //   .data([1.6, 2.5])
+    
+    // background
+    //   .enter().append("circle")
+    //   .attr("class", "background")
+    //   .attr("r", function(d, i) { return r/d; })
+    //   .attr("cx", width/2)
+    //   .attr("cy", height/2)
+    //   .style("fill", function(d) {
+    //     if (d == 2.2) { return "#fff";}
+    //     else {return "#fff"} })
+    //   .style("opacity", 0.7)
+
+    var start_year = d3.select('#slider-time').property("value");
+    trial_links = package_imports(data, start_year);
+
+    var all_data = {"nodes":data, "links":trial_links};
+
+    link = svg.selectAll(".link")
+        .data(all_data.links);
+
+    link
+      .enter().append("line")
+      .attr("class", "link")      
+
+    link
+      .exit()
+      .remove();
+
+
+    node = svg.selectAll(".node")
+      .data(data);
+
+    node
+      .enter().append("circle")
+      .attr("class", "node")
+      .attr("r", 5.5)
+      .style("fill", function(d) { return color(d.continent); })
+      .call(force.drag)
+      .on("click", function(d) {
+        d3.select('#force').property("checked", "checked");
+        if (d.name != "") {
+          var year = d3.select('#slider-time').property("value");
+          trial_links = package_imports(data, year);
+          country_selected = d.name;
+          var new_links = filter_links(trial_links, d.name);
+          var new_data = {"nodes":data, "links":new_links};
+          force_change(new_data, year);
+        }
+      })
+      .on("mouseover", tip.show)        
+      .on("mouseout", tip.hide)
+    
+
+    node.append("image")
+      .attr("xlink:href", "https://github.com/favicon.ico")
+      .attr("x", -8)
+      .attr("y", -8)
+      .attr("width", 16)
+      .attr("height", 16);
+    // var foreground = svg.selectAll(".foreground")
+    // foreground.append("image")
+    //   .attr("class", "foreground")
+    //   .attr("xlink:href", "http://www.clipartbest.com/cliparts/9Tz/EpE/9TzEpEaxc.png")
+    //   .attr("x", width/2)
+    //   .attr("y", height/2)
+    //   .attr("width", 16)
+    //   .attr("height", 16);
+
+    node
+      .exit()
+      .remove();
+
+    message = svg.selectAll(".lab")
+      .data(data)
+
+    message
+      .enter().append("text")
+      .attr("class", "lab")
+      .attr("text-anchor", "middle")
+      .attr("x", width/2)
+      .attr("y", height/2)
+      .style("fill", "white")
+
+    force
+      .nodes(all_data.nodes)
+
+    force_layout_all();
+
+    svg.call(tip);
+
+    tip
+      .html(function(d) {
+        return "<strong>" + d.name + "</strong>";
+    })
+
+    d3.select("input[value=\"not_weighted\"]").on("change", function(){
+      var year = d3.select('#slider-time').property("value");
+      if (country_selected) {
+        trial_links = package_imports(data, year);
+        var new_links = filter_links(trial_links, country_selected);
+        var new_data = {"nodes":data, "links":new_links};
+        force_change(new_data, year);
+      }
+    })
+    d3.select("input[value=\"weighted\"]").on("change", function(){
+      var year = d3.select('#slider-time').property("value");
+      if (country_selected) {
+        trial_links = package_imports(data, year);
+        var new_links = filter_links(trial_links, country_selected);
+        var new_data = {"nodes":data, "links":new_links};
+        force_change(new_data, year);
+      }
+    })
+
+    d3.selectAll('#slider-time').on("input",function(){
+      var year = d3.select('#slider-time').property("value");
+      if (d3.select("input[value=\"on\"]").node().checked) {
+          if (country_selected) {
+            trial_links = package_imports(data, year);
+            var new_links = filter_links(trial_links, country_selected);
+            var new_data = {"nodes":data, "links":new_links};
+            force_change(new_data, year);
+          }
+      }
+      else if (d3.select("input[value=\"gdp\"]").node().checked) {
+        circular_layout(data, "gdp", year);
+      }
+      else if (d3.select("input[value=\"population\"]").node().checked) {
+        circular_layout(data, "population", year);
+      }
+    });
+
+    d3.select("input[value=\"gdp\"]").on("change", function() {
+      var year = d3.select('#slider-time').property("value");
+      circular_layout(data, "gdp", year);
+    })
+    d3.select("input[value=\"population\"]").on("change", function() {
+      var year = d3.select('#slider-time').property("value");
+      circular_layout(data, "population", year);
+    })
+    d3.select("input[value=\"alpha\"]").on("change", function() {
+      var year = d3.select('#slider-time').property("value");
+      circular_layout(data, "name", year);
+    })
+
+    d3.select("input[value=\"on\"]").on("change", function() {
+      var year = d3.select('#slider-time').property("value");
+        if (country_selected) {
+          trial_links = package_imports(data, year);
+          var new_links = filter_links(trial_links, country_selected);
+          var new_data = {"nodes":data, "links":new_links};
+          force_change(new_data, year);
+        }
+        else {
+          reset(data, all_data, trial_links);
+        }
+    })
+    d3.select("input[value=\"reset\"]").on("change", function() {
+      if (track_alpha < 0.01 ) {
+        reset(data, all_data, trial_links);
+      }
+      else {
+        d3.select("#force").property("checked", true);
+      }
+    })
+  });
+  </script>
+  </div>
+</div>
+     <div class="clearfix grpelem" id="u4608-8"><!-- content -->
+      <p>Force Layout:</p>
+      <p><input type="radio" name="map" value="on" checked = "checked" id = "force">  On</p>
+      <p><input type="radio" name="map" value="reset">  Reset</p>
+     </div>
+    </div>
+    <img class="colelem" id="u4602-4" alt="TM" width="200" height="18" src="images/u4602-4.png"/><!-- rasterized frame -->
+    <div class="verticalspacer"></div>
+   </div>
+  </div>
+  <!-- JS includes -->
+  <script type="text/javascript">
+   if (document.location.protocol != 'https:') document.write('\x3Cscript src="http://musecdn2.businesscatalyst.com/scripts/4.0/jquery-1.8.3.min.js" type="text/javascript">\x3C/script>');
+</script>
+  <script type="text/javascript">
+   window.jQuery || document.write('\x3Cscript src="scripts/jquery-1.8.3.min.js" type="text/javascript">\x3C/script>');
+</script>
+  <script src="scripts/museutils.js?275725342" type="text/javascript"></script>
+  <script src="scripts/jquery.scrolleffects.js?206645848" type="text/javascript"></script>
+  <script src="scripts/jquery.watch.js?3999102769" type="text/javascript"></script>
+  <!-- Other scripts -->
+  <script type="text/javascript">
+   $(document).ready(function() { try {
+(function(){var a={},b=function(a){if(a.match(/^rgb/))return a=a.replace(/\s+/g,"").match(/([\d\,]+)/gi)[0].split(","),(parseInt(a[0])<<16)+(parseInt(a[1])<<8)+parseInt(a[2]);if(a.match(/^\#/))return parseInt(a.substr(1),16);return 0};(function(){$('link[type="text/css"]').each(function(){var b=($(this).attr("href")||"").match(/\/?css\/([\w\-]+\.css)\?(\d+)/);b&&b[1]&&b[2]&&(a[b[1]]=b[2])})})();(function(){$("body").append('<div class="version" style="display:none; width:1px; height:1px;"></div>');
+for(var c=$(".version"),d=0;d<Muse.assets.required.length;){var f=Muse.assets.required[d],g=f.match(/([\w\-\.]+)\.(\w+)$/),k=g&&g[1]?g[1]:null,g=g&&g[2]?g[2]:null;switch(g.toLowerCase()){case "css":k=k.replace(/\W/gi,"_").replace(/^([^a-z])/gi,"_$1");c.addClass(k);var g=b(c.css("color")),h=b(c.css("background-color"));g!=0||h!=0?(Muse.assets.required.splice(d,1),"undefined"!=typeof a[f]&&(g!=a[f]>>>24||h!=(a[f]&16777215))&&Muse.assets.outOfDate.push(f)):d++;c.removeClass(k);break;case "js":k.match(/^jquery-[\d\.]+/gi)&&
+typeof $!="undefined"?Muse.assets.required.splice(d,1):d++;break;default:throw Error("Unsupported file type: "+g);}}c.remove();if(Muse.assets.outOfDate.length||Muse.assets.required.length)c="Some files on the server may be missing or incorrect. Clear browser cache and try again. If the problem persists please contact website author.",(d=location&&location.search&&location.search.match&&location.search.match(/muse_debug/gi))&&Muse.assets.outOfDate.length&&(c+="\nOut of date: "+Muse.assets.outOfDate.join(",")),d&&Muse.assets.required.length&&(c+="\nMissing: "+Muse.assets.required.join(",")),alert(c)})()})();
+/* body */
+Muse.Utils.transformMarkupToFixBrowserProblemsPreInit();/* body */
+Muse.Utils.prepHyperlinks(true);/* body */
+$('#u4578').registerOpacityScrollEffect([{"in":[-Infinity,265.55],"fade":219.2,"opacity":0},{"in":[265.55,265.55],"opacity":50},{"in":[265.55,Infinity],"fade":248.8,"opacity":100}]);/* scroll effect */
+$('#u4563-4').registerPositionScrollEffect([{"speed":[10,0],"in":[-Infinity,238.8]},{"speed":[0,5],"in":[238.8,Infinity]}]);/* scroll effect */
+$('#u4552-4').registerPositionScrollEffect([{"speed":[-6,-2],"in":[-Infinity,236.8]},{"speed":[0,5],"in":[236.8,Infinity]}]);/* scroll effect */
+$('#u4558-4').registerPositionScrollEffect([{"speed":[2,4],"in":[-Infinity,236.8]},{"speed":[0,5],"in":[236.8,Infinity]}]);/* scroll effect */
+$('#u4559-4').registerPositionScrollEffect([{"speed":[4,-7],"in":[-Infinity,236.8]},{"speed":[0,5],"in":[236.8,Infinity]}]);/* scroll effect */
+$('#u4565-4').registerPositionScrollEffect([{"speed":[6,9],"in":[-Infinity,236.8]},{"speed":[0,5],"in":[236.8,Infinity]}]);/* scroll effect */
+$('#u4566-4').registerPositionScrollEffect([{"speed":[-6,4],"in":[-Infinity,236.8]},{"speed":[0,5],"in":[236.8,Infinity]}]);/* scroll effect */
+$('#u4560-4').registerPositionScrollEffect([{"speed":[2,-7],"in":[-Infinity,236.8]},{"speed":[0,5],"in":[236.8,Infinity]}]);/* scroll effect */
+$('#u4567-4').registerPositionScrollEffect([{"speed":[-8,-3],"in":[-Infinity,236.8]},{"speed":[0,5],"in":[236.8,Infinity]}]);/* scroll effect */
+$('#u4568-4').registerPositionScrollEffect([{"speed":[7,9],"in":[-Infinity,236.8]},{"speed":[0,5],"in":[236.8,Infinity]}]);/* scroll effect */
+$('#u4553-4').registerPositionScrollEffect([{"speed":[7,0],"in":[-Infinity,235.8]},{"speed":[0,5],"in":[235.8,Infinity]}]);/* scroll effect */
+$('#u4570-4').registerPositionScrollEffect([{"speed":[5,0],"in":[-Infinity,235.8]},{"speed":[0,5],"in":[235.8,Infinity]}]);/* scroll effect */
+$('#u4571-4').registerPositionScrollEffect([{"speed":[3,0],"in":[-Infinity,235.8]},{"speed":[0,5],"in":[235.8,Infinity]}]);/* scroll effect */
+$('#u4572-4').registerPositionScrollEffect([{"speed":[-5,0],"in":[-Infinity,235.8]},{"speed":[0,5],"in":[235.8,Infinity]}]);/* scroll effect */
+$('#u4555-4').registerPositionScrollEffect([{"speed":[-7,0],"in":[-Infinity,235.8]},{"speed":[0,5],"in":[235.8,Infinity]}]);/* scroll effect */
+$('#u4554-4').registerPositionScrollEffect([{"speed":[-9,0],"in":[-Infinity,235.8]},{"speed":[0,5],"in":[235.8,Infinity]}]);/* scroll effect */
+Muse.Utils.fullPage('#page');/* 100% height page */
+Muse.Utils.showWidgetsWhenReady();/* body */
+Muse.Utils.transformMarkupToFixBrowserProblems();/* body */
+} catch(e) { if (e && 'function' == typeof e.notify) e.notify(); else Muse.Assert.fail('Error calling selector function:' + e); }});
+</script>
+   </body>
+</html>
