@@ -33,18 +33,25 @@
         stroke-opacity: 0.5;
       }
       .lab {
-        font-size: x-large;
+        font-family: Arvo;
+        font-size: large;
         opacity: 0.03;
+      }
+      .list {
+        font-family: Arvo;
+        font-size: x-small;
+        opacity: 0.8;
       }
       .axis path,
       .axis line {
           fill: none;
-          stroke: black;
+          stroke: white;
           shape-rendering: crispEdges;
       }
       .axis text {
           font-family: sans-serif;
           font-size: small;
+          fill: white;
       }
       .d3-tip {
         line-height: 1;
@@ -156,7 +163,8 @@
     </div>
     <div class="clearfix colelem" id="pu4586"><!-- group -->
      <div class="grpelem" id="u4586"><!-- custom html -->
-      <div id="demo"> 
+      <div id="demo"></div>
+        <div id="demo2"></div>
 
 
 
@@ -169,7 +177,7 @@
   var width = 1000 - margin.left - margin.right;
   var height = 550 - margin.top - margin.bottom;
 
-  var xscale = d3.scale.linear().range([10, width]);
+  var xscale = d3.scale.linear().range([10, width/5]);
   var yscale = d3.scale.linear().range([0, height]);
   var exscale = d3.scale.linear().range([5, height/25]);
   var linkscale = d3.scale.linear().range([20, height/1.6]);
@@ -187,20 +195,29 @@
             .append("g")
               .attr("transform", "translate("+margin.left+","+margin.top+")");
 
+
   var x_axis = d3.svg.axis()
                      .scale(xscale)
-                     .orient("bottom")
+                     .ticks(3)
+                     .outerTickSize(0)
+                     .tickFormat(d3.format("5s"))
+                     .orient("top")
+
 
   var force = d3.layout.force()
       .size([width, height])
       .charge(-300)
       .gravity(0.7)
 
-  var node, message, max_value, min_value;
+  var node, message, list, rect, max_value, min_value;
+  var node_min, node_max;
+  var top_ten = [];
+  var old_top_ten;
   var track_alpha =0;
   var written = 0;
   
   var continent_names, country_selected;
+  var export_amts = {};
 
   var longi, lat, dist, weight, length = 0;
 
@@ -316,6 +333,7 @@
   }
 
   function find_length(data, country, id, year) {
+    export_amts = {}
     var max_length = 0;
     var min_length = 0;
     var max_dist = 0;
@@ -327,6 +345,7 @@
     var longi = [];
     var dist = [];
 
+    
     var weight = [];
     var length= [];
     var index = [];
@@ -345,6 +364,8 @@
         if (max_dist < dist[i]) {
           max_dist = dist[i];
         }
+        export_amts[data[i].source.name] = data[i].source.years[year].top_partners[index[i]].total_export
+
         sum = (data[i].source.years[year].top_partners[index[i]].total_export) + sum;
       }
     }
@@ -388,6 +409,8 @@
 
   function force_layout_all() {
     message
+      .style("visibility", "hidden")
+    list
       .style("visibility", "hidden")
     if (track_alpha < 0.05) { force.start();}
     force.on("tick", tick_all)
@@ -440,6 +463,119 @@
       .attr("class", "node")
       .style("fill", function(d) {color(d.continent); })
 
+    if (data.links.length == 0 && written == 0) { 
+
+      rect.remove();
+      svg.select(".axis").remove();
+      track_alpha = 0;
+
+      var real_year = parseInt(d3.select('#slider-time').property("value")) + 1995;
+      
+      message
+        .style("visibility", "visible")
+        .attr("text-anchor", "middle")
+        .attr("x", width/2)
+        .attr("y", height/2)
+        .text(country_selected + " is not a top export partner of any country in " + real_year + ". Please wait a second and reset.")
+
+      list
+        .style("visibility", "hidden")
+    }
+    else {
+      
+      old_top_ten = top_ten
+
+      console.log(old_top_ten)
+      year = parseInt(d3.select('#slider-time').property("value")) 
+      length = find_length(data.links, data.links[0].target.name, data.links[0].target.country_id, year);
+      node_min = d3.min(d3.values(export_amts))
+      node_max = d3.max(d3.values(export_amts))
+
+      export_amts_sorted = d3.entries(export_amts).sort(function(a,b){return b.value - a.value;})
+      top_ten = export_amts_sorted.slice(0, 10)
+
+      list
+        .remove();
+
+      rect.remove();
+
+      var real_year = year + 1995;
+      message
+        .style("visibility", "visible")
+        .attr("text-anchor", "left")
+        .attr("x", 10)
+        .attr("y", 30)
+        .text(country_selected + "'s Top Trading Partners in " + real_year + " (by Imports)")
+
+      list = svg.selectAll(".list")
+        .data(top_ten)
+        .enter().append("text")
+        .attr("class", "list")
+        .attr("text-anchor", "end")
+        // .attr("text-align", "right")
+        .attr("x", 110)
+        .attr("y", function(d,i) {return 73+15*i;})
+        .style("fill", "white")
+        .text(function(d) {return d.key;})
+
+        // .on("click", function(d) {
+        //   d3.select('#force').property("checked", "checked");
+        //   if (d.key != "") {
+        //     var year = d3.select('#slider-time').property("value");
+        //     trial_links = package_imports(data, year);
+        //     country_selected = d.key;
+        //     var new_links = filter_links(trial_links, d.key);
+        //     var new_data = {"nodes":data, "links":new_links};
+        //     force_change(new_data, year);
+        //   }})
+      xscale.domain([node_min, node_max])
+
+      
+
+      rect = svg.selectAll(".rect")
+        .data(top_ten)
+        .enter().append("rect")
+        .attr("x", 120)
+        .attr("y", function(d,i) {return 65+15*i;})
+        .attr("width", function(d,i) {
+          if (old_top_ten != "") {
+            if (i < old_top_ten.length) {
+              return xscale(old_top_ten[i].value);
+            }
+            else return 0;
+          }
+          else return 0;
+        })
+        .attr("height", 10)
+        .style("fill", "white")
+        .on("mouseover", function(d) {
+          d3.select(this).style("fill", "8BE3FF");
+          d3.selectAll(".node")
+            .filter(function(dd) { return dd.name==d.key; })
+            .style("stroke-width", 5.5)
+          })
+        .on('mouseout', function(d){
+          d3.select(this).style("fill", "white");
+          d3.selectAll(".node").filter(function(dd) { return dd.name==d.key;})
+            .style("stroke-width", 1)
+        })
+
+      rect
+        .transition().duration(1000)
+        .attr("width", function(d,i) {return xscale(d.value);})
+
+      svg.append("g")
+        .attr("class", "axis")
+        .attr("transform", "translate(110, 60)")
+
+      svg.select(".axis")
+        .call(x_axis)
+        
+
+
+    }
+    // var length = find_length(data.links, data.links[0].target.name, data.links[0].target.country_id, year);
+
     node
       .call(force.drag)
       .transition().duration(2000)
@@ -448,7 +584,6 @@
         if (data.links.length != 0) {
           
           var index = get_index(d, data.links[0].target.country_id, year);
-
           if (index == -1) {
             if (d.name == data.links[0].target.name) {
               return 10;
@@ -456,11 +591,15 @@
             else { return 0;}
           }
           else {  
-            var min = d3.min(data.nodes, function(dd){
-              return dd.years[year].top_partners[index].total_export;})
-            var max = d3.max(data.nodes, function(dd){
-              return dd.years[year].top_partners[index].total_export;})
-            exscale.domain([min, max]);
+            // var min = d3.min(data.nodes, function(dd){
+            //   return dd.years[year].top_partners[index].total_export;})
+            // var max = d3.max(data.nodes, function(dd){
+            //   return dd.years[year].top_partners[index].total_export;})
+
+            // exscale.domain([min, max]);
+
+            exscale.domain([node_min, node_max]);
+
             return exscale(d.years[year].top_partners[index].total_export);
           }
         }
@@ -477,10 +616,13 @@
    
     tip 
       .html(function(d) {
+        index = get_index(d, data.links[0].target.country_id, year);
         if (d.name != data.links[0].target.name) {
           return "<strong>" + d.name + "</strong> <span style='color:#8F8F8F'>" + (gdpformat(prefix_pop.scale(d.years[year].top_partners[index].total_export))+prefix_pop.symbol) + "</span>";}
         else {return "<strong>" + d.name + "</strong>";}
       })
+
+
 
     node
       .on("mouseover", tip.show)        
@@ -491,24 +633,8 @@
       .exit()
       .remove();
 
-    if (data.links.length == 0 && written == 0) { 
-
-      track_alpha = 0;
-
-      var year = parseInt(d3.select('#slider-time').property("value")) + 1995;
-      
-      message
-        .style("visibility", "visible")
-        .text(country_selected + " is not a top export partner of any country in " + year + ". Please reset.")
-
-    }
-    else {
-      message
-        .style("visibility", "hidden")
 
 
-      var length = find_length(data.links, data.links[0].target.name, data.links[0].target.country_id, year);
-    }
       force
         .nodes(data.nodes)
         .links(data.links)
@@ -525,12 +651,15 @@
           .attr("x2", function(d) { return d.target.x; })
           .attr("y2", function(d) { return d.target.y; })
       })
-    
+
   }
 
   function reset(data, all_data, trial_links) {
 
       var empty = [];
+
+      rect.remove();
+      svg.select(".axis").remove();
 
       link = svg.selectAll(".link")
           .data(empty);
@@ -599,6 +728,7 @@
   d3.json("data/countries_1995_2012.json", function(data) {
 
 
+
     // var background = svg.selectAll(".background")
     //   .data([1.6, 2.5])
     
@@ -617,6 +747,7 @@
     trial_links = package_imports(data, start_year);
 
     var all_data = {"nodes":data, "links":trial_links};
+
 
     link = svg.selectAll(".link")
         .data(all_data.links);
@@ -654,20 +785,13 @@
       .on("mouseout", tip.hide)
     
 
-    node.append("image")
-      .attr("xlink:href", "https://github.com/favicon.ico")
-      .attr("x", -8)
-      .attr("y", -8)
-      .attr("width", 16)
-      .attr("height", 16);
-    // var foreground = svg.selectAll(".foreground")
-    // foreground.append("image")
-    //   .attr("class", "foreground")
-    //   .attr("xlink:href", "http://www.clipartbest.com/cliparts/9Tz/EpE/9TzEpEaxc.png")
-    //   .attr("x", width/2)
-    //   .attr("y", height/2)
+    // node.append("image")
+    //   .attr("xlink:href", "https://github.com/favicon.ico")
+    //   .attr("x", -8)
+    //   .attr("y", -8)
     //   .attr("width", 16)
     //   .attr("height", 16);
+
 
     node
       .exit()
@@ -675,6 +799,10 @@
 
     message = svg.selectAll(".lab")
       .data(data)
+
+    list =  svg.selectAll(".list")
+
+    rect =  svg.selectAll(".rect")
 
     message
       .enter().append("text")
