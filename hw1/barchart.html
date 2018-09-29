@@ -41,11 +41,11 @@
   </div>
   <div>
     <strong>Filter by:</strong>
-    <label><input type="checkbox" name="Americas" value="1" id="filter" onchange"('changed!')"/>Americas</input></label>
-    <label><input type="checkbox" name="Africa" value="2" id="filter" />Africa</label>    
+    <label><input type="checkbox" name="Americas" value="1" id="filter1" onchange"('changed!')"/>Americas</input></label>
+    <label><input type="checkbox" name="Africa" value="2" id="filter2" />Africa</label>    
     <label><input type="checkbox" name="Asia" value="3" id="filter" />Asia</label>  
-    <label><input type="checkbox" name="Europe" value="4" id="filter" />Europe</label>  
-    <label><input type="checkbox" name="Oceania" value="5" id="filter" />Oceania</label>                  
+    <label><input type="checkbox" name="Europe" value="4" id="filter3" />Europe</label>  
+    <label><input type="checkbox" name="Oceania" value="5" id="filter4" />Oceania</label>                  
   </div>
   <div>
     <strong>Aggregate by:</strong>
@@ -54,9 +54,9 @@
   </div>
   <div>
     <strong>Value:</strong>
-    <label><input type="radio" name="Sort" value="gdp" id="sort" checked = "checked" onclick="" >GDP</label>
-    <label><input type="radio" name="Sort" value="life_expectancy" id="sort" onclick="">Life Expectancy</label>
-    <label><input type="radio" name="Sort" value="population" id="sort" onclick="">Population</label>
+    <label><input type="radio" name="Sort" value="gdp" id="sort1" checked = "checked" onclick="" >GDP</label>
+    <label><input type="radio" name="Sort" value="life_expectancy" id="sort2" onclick="">Life Expectancy</label>
+    <label><input type="radio" name="Sort" value="population" id="sort3" onclick="">Population</label>
   </div>
   <script type="text/javascript">
     var gdpformat = d3.format("0,.1f");
@@ -133,19 +133,20 @@
               } })
               .entries(data);
         }
-        flat_results = aggregated.map(function(d, i){
-        return {
-          continent:d.key,
-          val:d.values.val,
-          year:d.values.year };
-        })
-        return flat_results;
+        // flat results
+        return (aggregated.map(function(d, i){
+            return {
+              continent:d.key,
+              val:d.values.val,
+              year:d.values.year };
+            })
+        );
     }
 
     function sort_value(data, use_value) {
         if (use_value == "gdp") {
             new_data = data.map(function(d){
-                years = d["years"];
+                var years = d["years"];
                 return years.map(function(dd) {
                     return {
                     name: d.name,
@@ -158,7 +159,7 @@
         }
         else if (use_value == "life_expectancy") {
             new_data = data.map(function(d){
-                years = d["years"];
+                var years = d["years"];
                 return years.map(function(dd) {
                     return {
                     name: d.name,
@@ -171,7 +172,7 @@
         }
         else if (use_value == "population") {
             new_data = data.map(function(d){
-                years = d["years"];
+                var years = d["years"];
                 return years.map(function(dd) {
                     return {
                     name: d.name,
@@ -215,7 +216,7 @@
             }
             else {return true;}});
 
-        without_nulls = filtered_data.filter(function(d) {
+        var without_nulls = filtered_data.filter(function(d) {
             return (d[index].val != null);});
         var min = d3.min(without_nulls, function(d) { 
             return d[index].val; } );
@@ -253,7 +254,7 @@
                 else {
                     return xScale(min);
                 }})
-            .attr("fill", function(d) { return conticolors(d[index].continent)})
+            .attr("fill", function(d) { return conticolors(d[index].continent)});
         title
             .text(function(d) { 
                 if (use_value == "gdp") {return (gdpformat(prefix.scale(d[index].val))+prefix.symbol); }
@@ -276,7 +277,6 @@
     function update_aggregate (new_data) {
         var continent = ["", "", "", "", "", ""];
         var year = d3.select('#slider-time').property("value");
-        var index = year - 1995;
         var empty = true;
         d3.selectAll("input").each(function(d,i) {
             empty = false;
@@ -305,7 +305,7 @@
             else {return true;}
         });
 
-        without_nulls = filtered_data.filter(function(d) {return (d.val != null);});
+        var without_nulls = filtered_data.filter(function(d) {return (d.val != null);});
         
         var min = d3.min(without_nulls, function(d) { 
             return d.val; } );
@@ -321,7 +321,7 @@
         // DATA JOIN
 
         var rect = g.selectAll("rect")
-            .data(filtered_data)
+            .data(filtered_data);
 
         var text = g.selectAll("text")
             .data(filtered_data);
@@ -350,7 +350,7 @@
             .attr("width", function(d) { 
                 if (d.val != null) {return xScale(d.val);}
                 else {return xScale(min);}})
-            .attr("fill", function(d) { return conticolors(d.continent)})
+            .attr("fill", function(d) { return conticolors(d.continent)});
 
         title
             .text(function(d) { 
@@ -424,7 +424,7 @@
 
 
         var default_data = data.map(function(d){
-            years = d["years"];
+            var years = d["years"];
             return years.map(function(dd) {
                 return {
                 name: d.name,
@@ -453,7 +453,7 @@
         d3.select('#max_time')
           .text(max_year);
 
-        without_nulls = default_data.filter(function(d) {
+        var without_nulls = default_data.filter(function(d) {
             return (d[0].val != null);});
         
         var min = d3.min(without_nulls, function(d) { 
@@ -471,8 +471,8 @@
             use_value = d3.select(this).attr("value");
             
             if(d3.select("#aggregate").node().checked) {
-                sorted = sort_value(data, use_value);
-                aggregate_rows = aggregate(sorted, use_value);
+                var sorted = sort_value(data, use_value);
+                var aggregate_rows = aggregate(sorted, use_value);
                 update_aggregate(aggregate_rows);
             } 
             else {
@@ -489,8 +489,8 @@
                     use_value = d3.select(this).attr("value");
                 }
             });
-            sorted = sort_value(data, use_value);
-            aggregate_rows = aggregate(sorted, use_value);
+            var sorted = sort_value(data, use_value);
+            var aggregate_rows = aggregate(sorted, use_value);
             update_aggregate(aggregate_rows);
         });
 
@@ -513,8 +513,8 @@
                 }
             });
             if(d3.select("#aggregate").node().checked) {
-                sorted = sort_value(data, use_value);
-                aggregate_rows = aggregate(sorted, use_value);
+                var sorted = sort_value(data, use_value);
+                var aggregate_rows = aggregate(sorted, use_value);
                 update_aggregate(aggregate_rows);
             } 
             else {
@@ -531,8 +531,8 @@
                 }
             });
             if(d3.select("#aggregate").node().checked) {
-                sorted = sort_value(data, use_value);
-                aggregate_rows = aggregate(sorted, use_value);
+                var sorted = sort_value(data, use_value);
+                var aggregate_rows = aggregate(sorted, use_value);
                 update_aggregate(aggregate_rows);
             } 
             else {

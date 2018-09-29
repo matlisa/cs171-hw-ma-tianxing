@@ -48,11 +48,11 @@
   </div>
   <div>
     <strong>Filter by:</strong>
-    <label><input type="checkbox" name="Americas" value="1" id="filter" onchange"('changed!')"/>Americas</input></label>
-    <label><input type="checkbox" name="Africa" value="2" id="filter" />Africa</label>    
-    <label><input type="checkbox" name="Asia" value="3" id="filter" />Asia</label>  
-    <label><input type="checkbox" name="Europe" value="4" id="filter" />Europe</label>  
-    <label><input type="checkbox" name="Oceania" value="5" id="filter" />Oceania</label>                  
+    <label><input type="checkbox" name="Americas" value="1" id="filter1" onchange"('changed!')"/>Americas</input></label>
+    <label><input type="checkbox" name="Africa" value="2" id="filter2" />Africa</label>    
+    <label><input type="checkbox" name="Asia" value="3" id="filter3" />Asia</label>  
+    <label><input type="checkbox" name="Europe" value="4" id="filter4" />Europe</label>  
+    <label><input type="checkbox" name="Oceania" value="5" id="filter5" />Oceania</label>                  
   </div>
   <div>
     <strong>Aggregate by:</strong>
@@ -115,7 +115,7 @@
         var table = d3.select("body").append("table"),
         thead = table.append("thead")
                      .attr("class", "thead");
-        tbody = table.append("tbody");
+        var tbody = table.append("tbody");
 
         table.attr("align", "center");
 
@@ -219,7 +219,7 @@
         var year = d3.select('#slider-time').property("value");
         var filtered_year = filter_year(data);
 
-        aggregated = d3.nest()
+        var aggregated = d3.nest()
           .key(function(d) { return d.continent; })
           .rollup(function(leaves) { return {
             "gdp": d3.sum(leaves, function(d) {return parseFloat(d.gdp);}),
@@ -229,7 +229,7 @@
           } })
           .entries(filtered_year);
 
-        flat_results = aggregated.map(function(d, i){
+        var flat_results = aggregated.map(function(d, i){
         return {
           continent:d.key,
           gdp:d.values.gdp,
@@ -274,12 +274,12 @@
         d3.select('#max_time')
           .text(max);
 
-        filtered_year = filter_year(flat);
+        var filtered_year = filter_year(flat);
 
         buildtable(filtered_year, variables, variables_titles);
 
         d3.selectAll("#aggregate").on("change", function() {
-          aggregate_rows = aggregate(flat);
+          var aggregate_rows = aggregate(flat);
           update(aggregate_rows, new_variables, new_variables_titles);
         });
 
@@ -288,7 +288,7 @@
 
         d3.selectAll("#filter").on("change", function(d) {
           if(d3.select("#aggregate").node().checked) {
-            aggregate_rows = aggregate(flat);
+            var aggregate_rows = aggregate(flat);
             update(aggregate_rows, new_variables, new_variables_titles);
           } 
           else {
@@ -298,7 +298,7 @@
 
         d3.selectAll('#slider-time').on("input",function(){
           if(d3.select("#aggregate").node().checked) {
-            aggregate_rows = aggregate(flat);
+            var aggregate_rows = aggregate(flat);
             update(aggregate_rows, new_variables, new_variables_titles);
           } 
           else {
