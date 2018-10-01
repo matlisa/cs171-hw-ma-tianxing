@@ -146,10 +146,10 @@
 
     force.stop();
 
-    max_xvalue = d3.max(data, function(d) { return d[x_value]; } );
-    min_xvalue = d3.min(data, function(d) { return d[x_value]; } );
-    max_yvalue = d3.max(data, function(d) { return d[y_value]; } );
-    min_yvalue = d3.min(data, function(d) { return d[y_value]; } );
+    var max_xvalue = d3.max(data, function(d) { return d[x_value]; } );
+    var min_xvalue = d3.min(data, function(d) { return d[x_value]; } );
+    var max_yvalue = d3.max(data, function(d) { return d[y_value]; } );
+    var min_yvalue = d3.min(data, function(d) { return d[y_value]; } );
     xscale.domain([min_xvalue -10, max_xvalue + 20]);
     yscale.domain([max_yvalue + 10, min_yvalue - 10]);
     
@@ -244,9 +244,9 @@
     find_centers();
     arc.outerRadius(r/2);
            
-    var filtered_data = data.filter(function(d) {
-        return d["continent"] == "Africa";
-        });
+    // var filtered_data = data.filter(function(d) {
+    //     return d["continent"] == "Africa";
+    //     });
 
     pie
       .sort(function(a, b) { 

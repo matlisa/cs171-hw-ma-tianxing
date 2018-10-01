@@ -37,7 +37,7 @@ function get_products_for_page(page) {
         // However, this requires all data to be kept in memory until the very end. Instead, we incrementally write
         // each page to the output file and do some string manipulations to merge the individual JSON arrays.
 
-        var stringified = JSON.stringify(data.products, null, '\t')
+        var stringified = JSON.stringify(data.products, null, '\t');
 
         // Removes the start and end bracket from stringified JSON
         //  Note that this approach will generate a trailing comma for the last element (technically invalid JSON),

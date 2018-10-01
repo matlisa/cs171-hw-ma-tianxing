@@ -31,7 +31,7 @@ TypeVis = function(_parentElement, _data, _eventHandler){
  * Method that sets up the SVG and the variables
  */
 TypeVis.prototype.initVis = function(){
-    console.log(this.parentElement)
+    console.log(this.parentElement);
     // constructs SVG layout
     this.svg = this.parentElement.append("svg")
         .attr("width", this.width + this.margin.left + this.margin.right)

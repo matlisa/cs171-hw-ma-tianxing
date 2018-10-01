@@ -71,7 +71,7 @@ VolumeVis.prototype.initVis = function(){
     // Add axes visual elements
     this.svg.append("g")
         .attr("class", "x axis")
-        .attr("transform", "translate(0," + this.height + ")")
+        .attr("transform", "translate(0," + this.height + ")");
 
     this.svg.append("g")
         .attr("class", "y axis")

@@ -148,7 +148,7 @@
 
   d3.json("data/countries_1995_2012.json", function(data) {
 
-    trial_links = package_imports(data);
+    var trial_links = package_imports(data);
  
     var links = data.map(function(d, i){
       if(d.years[17].top_partners) {
@@ -200,7 +200,7 @@
     text = svg.selectAll(".text")
       .data(new_data.links)
 
-    countries = svg.selectAll(".lab")
+    var countries = svg.selectAll(".lab")
       .data(data)
 
     arc.outerRadius(r);

@@ -147,16 +147,16 @@
   function circular_layout(data, val, year) {
     var countries = ["Greece", "Italy"]
     
-    var filtered = data.filter(function(d, i) {
-        if (countries.indexOf(d.name) > -1) {
-        return true;}
-    }) 
+    // var filtered = data.filter(function(d, i) {
+    //     if (countries.indexOf(d.name) > -1) {
+    //     return true;}
+    // }) 
 
     track_alpha = 0;
     d3.select("#force").property("checked", false);
 
     var empty = [];
-    link = svg.selectAll(".link")
+    var link = svg.selectAll(".link")
         .data(empty);
 
     link
@@ -347,7 +347,7 @@
       })
     svg.call(tip);
 
-    link = svg.selectAll(".link")
+    var link = svg.selectAll(".link")
         .data(data.links);
 
     link
@@ -455,7 +455,7 @@
 
       var empty = [];
 
-      link = svg.selectAll(".link")
+      var link = svg.selectAll(".link")
           .data(empty);
 
       link
@@ -537,11 +537,11 @@
       .style("opacity", 0.7)
 
     var start_year = d3.select('#slider-time').property("value");
-    trial_links = package_imports(data, start_year);
+    var trial_links = package_imports(data, start_year);
 
     var all_data = {"nodes":data, "links":trial_links};
 
-    link = svg.selectAll(".link")
+    var link = svg.selectAll(".link")
         .data(all_data.links);
 
     link
@@ -566,7 +566,7 @@
         d3.select('#force').property("checked", "checked");
         if (d.name != "") {
           var year = d3.select('#slider-time').property("value");
-          trial_links = package_imports(data, year);
+          var trial_links = package_imports(data, year);
           country_selected = d.name;
           var new_links = filter_links(trial_links, d.name);
           var new_data = {"nodes":data, "links":new_links};
@@ -612,7 +612,7 @@
     d3.select("input[value=\"not_weighted\"]").on("change", function(){
       var year = d3.select('#slider-time').property("value");
       if (country_selected) {
-        trial_links = package_imports(data, year);
+        var trial_links = package_imports(data, year);
         var new_links = filter_links(trial_links, country_selected);
         var new_data = {"nodes":data, "links":new_links};
         force_change(new_data, year);
@@ -621,7 +621,7 @@
     d3.select("input[value=\"weighted\"]").on("change", function(){
       var year = d3.select('#slider-time').property("value");
       if (country_selected) {
-        trial_links = package_imports(data, year);
+        var trial_links = package_imports(data, year);
         var new_links = filter_links(trial_links, country_selected);
         var new_data = {"nodes":data, "links":new_links};
         force_change(new_data, year);
@@ -632,7 +632,7 @@
       var year = d3.select('#slider-time').property("value");
       if (d3.select("input[value=\"on\"]").node().checked) {
           if (country_selected) {
-            trial_links = package_imports(data, year);
+            var trial_links = package_imports(data, year);
             var new_links = filter_links(trial_links, country_selected);
             var new_data = {"nodes":data, "links":new_links};
             force_change(new_data, year);
